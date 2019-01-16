@@ -1,8 +1,23 @@
-var { reduce, forEach, isEmpty } = require("lodash");
-var { dirname, join: pathJoin } = require("path");
-var { readFileSync, writeFileSync, existsSync } = require("fs");
-var { tmpdir } = require("os");
-var { warn } = require("console");
+var {
+  reduce,
+  forEach,
+  isEmpty
+} = require("lodash");
+var {
+  dirname,
+  join: pathJoin
+} = require("path");
+var {
+  readFileSync,
+  writeFileSync,
+  existsSync
+} = require("fs");
+var {
+  tmpdir
+} = require("os");
+var {
+  warn
+} = require("console");
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
 
@@ -16,16 +31,20 @@ var readURLFromCache = async url => {
   var encoding = "utf-8";
   var location = pathJoin(tmpdir(), md5(url));
   if (existsSync(location)) {
-    return readFileSync(location, { encoding });
+    return readFileSync(location, {
+      encoding
+    });
   } else {
     var response = await fetch(url);
     var content = await response.text();
-    writeFileSync(location, content, { encoding });
+    writeFileSync(location, content, {
+      encoding
+    });
     return await content;
   }
 };
 
-var fetchSource = async(mName, resourceRoot = "") => {
+var fetchSource = async (mName, resourceRoot = "") => {
   var url = `${resourceRoot}${mName}.js`;
   try {
     return await readURLFromCache(url);
@@ -35,7 +54,7 @@ var fetchSource = async(mName, resourceRoot = "") => {
   }
 };
 
-var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
+var fetchAllResource = async (resourceList = [], resourceRoot = "") => {
   var rt = {};
   await Promise.all(
     resourceList.map(async r => {
@@ -52,6 +71,9 @@ var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
   return rt;
 };
 
+/**
+ * find modules in sap.ui.define parttern
+ */
 var findAllUi5StandardModules = (source, sourceName) => {
   var base = dirname(sourceName);
   var groups = /sap\.ui\.define\(.*?(\[.*?\])/g.exec(source);
@@ -62,6 +84,8 @@ var findAllUi5StandardModules = (source, sourceName) => {
     return dependencies.map(d => {
       if (d.startsWith("./") || d.startsWith("../")) {
         d = pathJoin(base, d);
+        // replace \ to / after join
+        d = d.replace(/\\/g, "/")
       }
       return d;
     });
@@ -77,7 +101,7 @@ var findAllImportModules = (source, sourceName = "") => {
     rt = matchedTexts.map(t => {
       var importName = /import.*?["|'](.*?)["|']/g.exec(t)[1];
       if (importName.startsWith("./")) {
-        importName = pathJoin(base, importName);
+        importName = pathJoin(base, importName).replace(/\\/g, "/");
       }
       return importName;
     });
@@ -86,7 +110,7 @@ var findAllImportModules = (source, sourceName = "") => {
 };
 
 // change rescursive to iteration
-var resolveUI5Module = async(sModuleNames = [], resouceRoot) => {
+var resolveUI5Module = async (sModuleNames = [], resouceRoot) => {
   var moduleCache = {};
   var moduleDeps = {};
   moduleDeps["entry"] = sModuleNames;
@@ -137,11 +161,11 @@ var UI5Libraries = [
   "sap/uxap"
 ];
 
-var findAllLibraries = (modules = []) =>{
+var findAllLibraries = (modules = []) => {
   var rt = new Set();
-  forEach(modules, m=>{
-    forEach(UI5Libraries, l=>{
-      if(m.startsWith(l)){
+  forEach(modules, m => {
+    forEach(UI5Libraries, l => {
+      if (m.startsWith(l)) {
         rt.add(l);
       }
     });
@@ -168,8 +192,7 @@ var generatePreloadFile = (cache = {}, resources = {}) => {
         pre[`${moduleName}.js`] = UglifyJS.minify(moduleSource).code;
       }
       return pre;
-    },
-    {}
+    }, {}
   );
   forEach(resources, (content, resourceName) => {
     modules[resourceName] = content;
