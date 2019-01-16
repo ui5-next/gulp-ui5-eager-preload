@@ -1,9 +1,20 @@
 # gulp ui5 eager preload plugin
 
-* preload standard modules (with minify)
-* allow manually maintain resources & module
-* generate `index.html`
-* inline `library.css`
+* preload standard modules (with uglify, only preload `imported` modules).
+* allow manually maintain resources & module.
+* generate `index.html`, inline `library.css` avoid xhr block request.
+* local file & url based cache.
+
+in standard `openui5 workthrough` demo
+
+* totally downloaded file size will reduce `%50` or more (depends on the usage rate for single standard library).
+* first screen time dropped from 1500ms to 300ms (with cache).
+* reduce the number of requests.
+
+## to do
+
+* analysis `xml view` and `xml fragment`
+* document
 
 ## sample
 
