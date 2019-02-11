@@ -20,6 +20,9 @@ var {
 } = require("console");
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
+var parseString = require('xml2js').parseString;
+
+const { eachDeep } = require('deepdash')(require('lodash'));
 
 var md5 = s => {
   var crypto = require("crypto");
@@ -44,7 +47,7 @@ var readURLFromCache = async url => {
   }
 };
 
-var fetchSource = async (mName, resourceRoot = "") => {
+var fetchSource = async(mName, resourceRoot = "") => {
   var url = `${resourceRoot}${mName}.js`;
   try {
     return await readURLFromCache(url);
@@ -54,7 +57,7 @@ var fetchSource = async (mName, resourceRoot = "") => {
   }
 };
 
-var fetchAllResource = async (resourceList = [], resourceRoot = "") => {
+var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
   var rt = {};
   await Promise.all(
     resourceList.map(async r => {
@@ -85,12 +88,37 @@ var findAllUi5StandardModules = (source, sourceName) => {
       if (d.startsWith("./") || d.startsWith("../")) {
         d = pathJoin(base, d);
         // replace \ to / after join
-        d = d.replace(/\\/g, "/")
+        d = d.replace(/\\/g, "/");
       }
       return d;
     });
   }
   return [];
+};
+
+var findAllUi5ViewModules = async(source, sourceName) => {
+  try {
+    return await new Promise((resolve, reject) => {
+      var ds = [];
+      parseString(source, { xmlns: true }, function(err, result) {
+        if (err) {
+          reject(err);
+        } else {
+          eachDeep(result, (value) => {
+            if (value && value.$ns) {
+              var mName = `${value.$ns.uri}.${value.$ns.local}`.replace(/\./g, "/");
+              ds.push(mName);
+            }
+
+          });
+          resolve(ds);
+        }
+      });
+    });
+  } catch (error) {
+    warn(`parse ${sourceName} modules failed: ${error}`);
+    return [];
+  }
 };
 
 var findAllImportModules = (source, sourceName = "") => {
@@ -110,11 +138,11 @@ var findAllImportModules = (source, sourceName = "") => {
 };
 
 // change rescursive to iteration
-var resolveUI5Module = async (sModuleNames = [], resouceRoot) => {
+var resolveUI5Module = async(sModuleNames = [], resouceRoot) => {
   var moduleCache = {};
   var moduleDeps = {};
   moduleDeps["entry"] = sModuleNames;
-  for (;;) {
+  for (; ;) {
     var needToBeLoad = new Set();
     forEach(moduleDeps, dep => {
       forEach(dep, d => {
@@ -161,6 +189,12 @@ var UI5Libraries = [
   "sap/uxap"
 ];
 
+/**
+ * find out all ui5 libraries
+ * @param {string[]} modules name
+ *
+ * @returns {string[]} lib names
+ */
 var findAllLibraries = (modules = []) => {
   var rt = new Set();
   forEach(modules, m => {
@@ -204,6 +238,7 @@ module.exports = {
   fetchAllResource,
   generatePreloadFile,
   fetchSource,
+  findAllUi5ViewModules,
   isUI5StandardModule,
   findAllImportModules,
   findAllUi5StandardModules,

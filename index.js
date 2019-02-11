@@ -13,6 +13,7 @@ var {
   isUI5StandardModule,
   findAllImportModules,
   findAllUi5StandardModules,
+  findAllUi5ViewModules,
   fetchAllResource,
   resolveUI5Module,
   findAllLibraries
@@ -78,13 +79,14 @@ module.exports = function({
   return through2.obj(async function(file, encoding, cb) {
     var libs = [];
     if (preload) {
+      var distinctDeps = new Set(addtionalModules);
+      // preload js module
       await new Promise((resolve, reject) => {
         glob(`${sourceDir}/**/*.js`, async(err, files) => {
           if (err) {
             reject(err);
             return;
           }
-          var distinctDeps = new Set(addtionalModules);
           var allDeps = files.map(f => {
             var mName = f.replace(sourceDir, namepath);
             var source = readFileSync(f, { encoding: "utf-8" });
@@ -98,25 +100,52 @@ module.exports = function({
               distinctDeps.add(d);
             }
           });
-          var modules = await resolveUI5Module(
-            Array.from(distinctDeps),
-            ui5ResourceRoot
-          );
-          libs = await findAllLibraries(Object.keys(modules));
-          this.push(
-            new GulpFile({
-              path: "preload.js",
-              contents: Buffer.from(
-                generatePreloadFile(
-                  modules,
-                  await fetchAllResource(addtionalResources, ui5ResourceRoot)
-                )
-              )
-            })
-          );
+
           resolve();
         });
       });
+      // preload xml view
+      await new Promise((resolve, reject) => {
+        glob(`${sourceDir}/**/*.view.xml`, async(err, files) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          var distinctDeps = new Set(addtionalModules);
+          var allDeps = files.map(f => {
+            var mName = f.replace(sourceDir, namepath);
+            var source = readFileSync(f, { encoding: "utf-8" });
+            return findAllUi5ViewModules(source, mName);
+          });
+          concat(...allDeps).forEach(d => {
+            if (isUI5StandardModule(d)) {
+              distinctDeps.add(d);
+            }
+          });
+
+          resolve();
+        });
+      });
+
+      // generate preload file
+      var modules = await resolveUI5Module(
+        Array.from(distinctDeps),
+        ui5ResourceRoot
+      );
+
+      libs = await findAllLibraries(Object.keys(modules));
+      this.push(
+        new GulpFile({
+          path: "preload.js",
+          contents: Buffer.from(
+            generatePreloadFile(
+              modules,
+              await fetchAllResource(addtionalResources, ui5ResourceRoot)
+            )
+          )
+        })
+      );
+
     }
 
     var packageJson = JSON.parse(file.contents.toString());
