@@ -47,7 +47,7 @@ var readURLFromCache = async url => {
   }
 };
 
-var fetchSource = async(mName, resourceRoot = "") => {
+var fetchSource = async (mName, resourceRoot = "") => {
   var url = `${resourceRoot}${mName}.js`;
   try {
     return await readURLFromCache(url);
@@ -57,7 +57,7 @@ var fetchSource = async(mName, resourceRoot = "") => {
   }
 };
 
-var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
+var fetchAllResource = async (resourceList = [], resourceRoot = "") => {
   var rt = {};
   await Promise.all(
     resourceList.map(async r => {
@@ -96,22 +96,21 @@ var findAllUi5StandardModules = (source, sourceName) => {
   return [];
 };
 
-var findAllUi5ViewModules = async(source, sourceName) => {
+var findAllUi5ViewModules = async (source, sourceName) => {
   try {
     return await new Promise((resolve, reject) => {
-      var ds = [];
-      parseString(source, { xmlns: true }, function(err, result) {
+      var ds = new Set();
+      parseString(source, { xmlns: true }, function (err, result) {
         if (err) {
           reject(err);
         } else {
           eachDeep(result, (value) => {
             if (value && value.$ns) {
               var mName = `${value.$ns.uri}.${value.$ns.local}`.replace(/\./g, "/");
-              ds.push(mName);
+              ds.add(mName);
             }
-
           });
-          resolve(ds);
+          resolve(Array.from(ds));
         }
       });
     });
@@ -138,7 +137,7 @@ var findAllImportModules = (source, sourceName = "") => {
 };
 
 // change rescursive to iteration
-var resolveUI5Module = async(sModuleNames = [], resouceRoot) => {
+var resolveUI5Module = async (sModuleNames = [], resouceRoot) => {
   var moduleCache = {};
   var moduleDeps = {};
   moduleDeps["entry"] = sModuleNames;
@@ -210,7 +209,7 @@ var findAllLibraries = (modules = []) => {
 var isUI5StandardModule = sModuleName => {
   var rt = false;
   UI5Libraries.forEach(packageName => {
-    if (sModuleName.startsWith(packageName)) {
+    if (sModuleName && sModuleName.startsWith(packageName)) {
       rt = true;
     }
   });

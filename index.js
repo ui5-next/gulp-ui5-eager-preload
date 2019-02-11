@@ -31,7 +31,7 @@ var rollupTmpConfig = (mAsbPath, mName) => ({
     file: `${mName}.js`,
     format: "umd"
   },
-  onwarn: function(message) {
+  onwarn: function (message) {
     // do nothing
   },
   plugins: [rollupNodeResolve({ preferBuiltins: true }), rollupCjs(), uglify()]
@@ -50,7 +50,7 @@ var bundleModule = async mName => {
 
 var defaultResourceRoot = "https://openui5.hana.ondemand.com/resources/";
 
-module.exports = function({
+module.exports = function ({
   sourceDir,
   preload = false,
   outputFilePath,
@@ -76,13 +76,13 @@ module.exports = function({
     );
   }
 
-  return through2.obj(async function(file, encoding, cb) {
+  return through2.obj(async function (file, encoding, cb) {
     var libs = [];
     if (preload) {
       var distinctDeps = new Set(addtionalModules);
       // preload js module
       await new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.js`, async(err, files) => {
+        glob(`${sourceDir}/**/*.js`, async (err, files) => {
           if (err) {
             reject(err);
             return;
@@ -106,26 +106,26 @@ module.exports = function({
       });
       // preload xml view
       await new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.view.xml`, async(err, files) => {
+        glob(`${sourceDir}/**/*.view.xml`, async (err, files) => {
           if (err) {
             reject(err);
-            return;
+          } else {
+            var allDeps = await Promise.all(files.map(f => {
+              var mName = f.replace(sourceDir, namepath);
+              var source = readFileSync(f, { encoding: "utf-8" });
+              return findAllUi5ViewModules(source, mName);
+            }));
+            concat(...allDeps).forEach(d => {
+              if (isUI5StandardModule(d)) {
+                distinctDeps.add(d);
+              }
+            });
+            resolve();
           }
-          var distinctDeps = new Set(addtionalModules);
-          var allDeps = files.map(f => {
-            var mName = f.replace(sourceDir, namepath);
-            var source = readFileSync(f, { encoding: "utf-8" });
-            return findAllUi5ViewModules(source, mName);
-          });
-          concat(...allDeps).forEach(d => {
-            if (isUI5StandardModule(d)) {
-              distinctDeps.add(d);
-            }
-          });
-
-          resolve();
         });
       });
+
+
 
       // generate preload file
       var modules = await resolveUI5Module(
