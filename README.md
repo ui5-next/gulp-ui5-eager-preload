@@ -13,7 +13,6 @@ in standard `openui5 workthrough` demo
 
 ## to do
 
-* support preload from `xml fragment`
 * document
 
 ## sample

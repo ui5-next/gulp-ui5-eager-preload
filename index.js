@@ -106,7 +106,7 @@ module.exports = function ({
       });
       // preload xml view
       await new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.view.xml`, async (err, files) => {
+        glob(`${sourceDir}/**/*.{view.xml, fragment.xml}`, async (err, files) => {
           if (err) {
             reject(err);
           } else {
