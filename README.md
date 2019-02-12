@@ -1,5 +1,7 @@
 # gulp ui5 eager preload plugin
 
+[![npm version](https://badge.fury.io/js/gulp-ui5-eager-preload.svg)](https://www.npmjs.com/package/gulp-ui5-eager-preload)
+
 * preload standard modules (with uglify, only preload `imported` modules).
 * allow manually maintain resources & module.
 * generate `index.html`, inline `library.css` avoid xhr block request.
