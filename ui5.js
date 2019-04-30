@@ -47,7 +47,7 @@ var readURLFromCache = async url => {
   }
 };
 
-var fetchSource = async (mName, resourceRoot = "") => {
+var fetchSource = async(mName, resourceRoot = "") => {
   var url = `${resourceRoot}${mName}.js`;
   try {
     return await readURLFromCache(url);
@@ -57,7 +57,7 @@ var fetchSource = async (mName, resourceRoot = "") => {
   }
 };
 
-var fetchAllResource = async (resourceList = [], resourceRoot = "") => {
+var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
   var rt = {};
   await Promise.all(
     resourceList.map(async r => {
@@ -96,11 +96,11 @@ var findAllUi5StandardModules = (source, sourceName) => {
   return [];
 };
 
-var findAllUi5ViewModules = async (source, sourceName) => {
+var findAllUi5ViewModules = async(source, sourceName) => {
   try {
     return await new Promise((resolve, reject) => {
       var ds = new Set();
-      parseString(source, { xmlns: true }, function (err, result) {
+      parseString(source, { xmlns: true }, function(err, result) {
         if (err) {
           reject(err);
         } else {
@@ -137,7 +137,7 @@ var findAllImportModules = (source, sourceName = "") => {
 };
 
 // change rescursive to iteration
-var resolveUI5Module = async (sModuleNames = [], resouceRoot) => {
+var resolveUI5Module = async(sModuleNames = [], resouceRoot) => {
   var moduleCache = {};
   var moduleDeps = {};
   moduleDeps["entry"] = sModuleNames;

@@ -2,10 +2,15 @@
 
 [![npm version](https://badge.fury.io/js/gulp-ui5-eager-preload.svg)](https://www.npmjs.com/package/gulp-ui5-eager-preload)
 
-* preload standard modules (with uglify, only preload `imported` modules).
+Please use this module by [The ultimate generator for UI5](https://github.com/ui5-next/ui5g)
+
+## features
+
+* preload standard modules (with `uglify`, only preload used modules).
 * allow manually maintain resources & module.
 * generate `index.html`, inline `library.css` avoid xhr block request.
 * local file & url based cache.
+* enable use thirdparty library from `node_modules`
 
 in standard `openui5 workthrough` demo
 
@@ -13,27 +18,34 @@ in standard `openui5 workthrough` demo
 * first screen time dropped from 1500ms to 300ms (with cache).
 * reduce the number of requests.
 
-## to do
-
-* document
-
-## sample
+## sample configuration
 
 ```js
 
 eagerPreload({
+  // Current Project Title
+  title: "UI5 Project",
+  // theme
+  theme: "sap_belize",
+  // standard library resource root
   ui5ResourceRoot: "https://openui5.hana.ondemand.com/resources",
+  // enable preload logic
   preload: true,
   sourceDir: join(__dirname, "./src"),
+  // thirdparty library output library
   thirdpartyLibPath: "_thridparty",
+  // project namespace
   projectNameSpace: namespace,
+  // addtionalResources
   addtionalResources: [
     "sap/m/messagebundle_zh_CN.properties",
     "sap/ui/core/messagebundle_zh_CN.properties"
   ],
-  title: "UI5 Project",
-  theme: "sap_belize",
+  // boot script
   bootScriptPath: "./index.js",
+  // addtionalModules 
+  // sometimes ui5 will dynamic load resource
+  // just use devtools find them and add them to here
   addtionalModules: ["sap/m/routing/Router", "sap/ui/thirdparty/datajs"]
 })
 
