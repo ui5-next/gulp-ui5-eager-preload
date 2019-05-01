@@ -118,7 +118,7 @@ var findAllImportModules = (source, sourceName = "") => {
 };
 
 // change rescursive to iteration
-var resolveUI5Module = async (sModuleNames = [], resouceRoot) => {
+var resolveUI5Module = async (sModuleNames = [], resourceRoot) => {
   var moduleCache = {};
   var moduleDeps = {};
   moduleDeps["entry"] = sModuleNames;
@@ -132,12 +132,15 @@ var resolveUI5Module = async (sModuleNames = [], resouceRoot) => {
       });
     });
     if (isEmpty(needToBeLoad)) {
+      // no more dependencies need to be analyzed
+      // break from this loop
       break;
     } else {
       await Promise.all(
         Array.from(needToBeLoad).map(async mName => {
           try {
-            var source = await fetchSource(mName, resouceRoot);
+            var source = await fetchSource(mName, resourceRoot);
+          // use cache here
             moduleCache[mName] = source;
             moduleDeps[mName] = findAllUi5StandardModules(source, mName);
           } catch (error) {
