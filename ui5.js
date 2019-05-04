@@ -6,11 +6,14 @@ var { warn } = require("console");
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
 var parseString = require('xml2js').parseString;
+var crypto = require("crypto");
 
 var { eachDeep } = require('deepdash')(require('lodash'));
 
+/**
+ * md5 hash
+ */
 var md5 = s => {
-  var crypto = require("crypto");
   var md5 = crypto.createHash("md5");
   return md5.update(s).digest("hex");
 };
@@ -28,7 +31,7 @@ var readURLFromCache = async url => {
   }
 };
 
-var fetchSource = async (mName, resourceRoot = "") => {
+var fetchSource = async(mName, resourceRoot = "") => {
   var url = `${resourceRoot}${mName}.js`;
   try {
     return await readURLFromCache(url);
@@ -38,7 +41,7 @@ var fetchSource = async (mName, resourceRoot = "") => {
   }
 };
 
-var fetchAllResource = async (resourceList = [], resourceRoot = "") => {
+var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
   var rt = {};
   await Promise.all(
     resourceList.map(async r => {
@@ -77,11 +80,11 @@ var findAllUi5StandardModules = (source, sourceName) => {
   return [];
 };
 
-var findAllUi5ViewModules = async (source, sourceName) => {
+var findAllUi5ViewModules = async(source, sourceName) => {
   try {
     return await new Promise((resolve, reject) => {
       var ds = new Set();
-      parseString(source, { xmlns: true }, function (err, result) {
+      parseString(source, { xmlns: true }, function(err, result) {
         if (err) {
           reject(err);
         } else {
@@ -118,7 +121,7 @@ var findAllImportModules = (source, sourceName = "") => {
 };
 
 // change rescursive to iteration
-var resolveUI5Module = async (sModuleNames = [], resourceRoot) => {
+var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
   var moduleCache = {};
   var moduleDeps = {};
   moduleDeps["entry"] = sModuleNames;
@@ -140,7 +143,7 @@ var resolveUI5Module = async (sModuleNames = [], resourceRoot) => {
         Array.from(needToBeLoad).map(async mName => {
           try {
             var source = await fetchSource(mName, resourceRoot);
-          // use cache here
+            // use cache here
             moduleCache[mName] = source;
             moduleDeps[mName] = findAllUi5StandardModules(source, mName);
           } catch (error) {
@@ -154,6 +157,9 @@ var resolveUI5Module = async (sModuleNames = [], resourceRoot) => {
   return moduleCache;
 };
 
+/**
+ * UI5 Library List
+ */
 var UI5Libraries = [
   "sap/ui/core",
   "sap/ui/layout",
@@ -200,6 +206,11 @@ var isUI5StandardModule = sModuleName => {
   return rt;
 };
 
+/**
+ * To generate preload file content
+ * @param {*} cache object
+ * @param {*} resources list
+ */
 var generatePreloadFile = (cache = {}, resources = {}) => {
   var modules = reduce(
     cache,
