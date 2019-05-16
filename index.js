@@ -21,7 +21,7 @@ var {
 
 var formatUI5Module = (umdCode, mName) => `sap.ui.define(function(){
   ${umdCode}
-  return this.${mName}
+  return window.${mName}
 })
 `;
 
