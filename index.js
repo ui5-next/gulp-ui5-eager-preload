@@ -80,8 +80,9 @@ module.exports = function({
     var libs = [];
     if (preload) {
       var distinctDeps = new Set(additionalModules);
+
       // preload js module
-      await new Promise((resolve, reject) => {
+      var preload_promise = new Promise((resolve, reject) => {
         glob(`${sourceDir}/**/*.js`, async(err, files) => {
           if (err) {
             reject(err);
@@ -104,8 +105,9 @@ module.exports = function({
           resolve();
         });
       });
+
       // preload xml view
-      await new Promise((resolve, reject) => {
+      var preload_project_promise = new Promise((resolve, reject) => {
         glob(`${sourceDir}/**/*.+(view|fragment).xml`, async(err, files) => {
           if (err) {
             reject(err);
@@ -125,22 +127,25 @@ module.exports = function({
         });
       });
 
-
+      // await
+      await Promise.all([preload_promise, preload_project_promise]);
 
       // generate preload file
-      var modules = await resolveUI5Module(
+      var modules = resolveUI5Module(
         Array.from(distinctDeps),
         ui5ResourceRoot
       );
 
       libs = await findAllLibraries(Object.keys(modules));
+      var resources = await fetchAllResource(additionalResources, ui5ResourceRoot);
+
       this.push(
         new GulpFile({
           path: "preload.js",
           contents: Buffer.from(
             generatePreloadFile(
               modules,
-              await fetchAllResource(additionalResources, ui5ResourceRoot)
+              resources
             )
           )
         })

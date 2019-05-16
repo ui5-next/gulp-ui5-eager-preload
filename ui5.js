@@ -1,14 +1,15 @@
 var { reduce, forEach, isEmpty } = require("lodash");
 var { dirname, join: pathJoin } = require("path");
-var { readFileSync, writeFileSync, existsSync } = require("fs");
-var { tmpdir } = require("os");
 var { warn } = require("console");
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
 var parseString = require('xml2js').parseString;
 var crypto = require("crypto");
+var { UI5Cache } = require("./cache");
 
 var { eachDeep } = require('deepdash')(require('lodash'));
+
+var persistCache = UI5Cache.Load();
 
 /**
  * md5 hash
@@ -19,16 +20,16 @@ var md5 = s => {
 };
 
 var readURLFromCache = async url => {
-  var encoding = "utf-8";
-  var location = pathJoin(tmpdir(), md5(url));
-  if (existsSync(location)) {
-    return readFileSync(location, { encoding });
-  } else {
+  var GlobalResourceCache = persistCache.get("GlobalResourceCache") || {};
+  var hash = md5(url);
+  var urlContent = GlobalResourceCache[hash];
+  if (!urlContent) {
     var response = await fetch(url);
-    var content = await response.text();
-    writeFileSync(location, content, { encoding });
-    return await content;
+    urlContent = await response.text();
+    GlobalResourceCache[hash] = urlContent;
   }
+  persistCache.set("GlobalResourceCache", GlobalResourceCache);
+  return urlContent;
 };
 
 var fetchSource = async(mName, resourceRoot = "") => {
@@ -43,6 +44,7 @@ var fetchSource = async(mName, resourceRoot = "") => {
 
 var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
   var rt = {};
+
   await Promise.all(
     resourceList.map(async r => {
       var url = `${resourceRoot}${r}`;
@@ -55,6 +57,8 @@ var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
       }
     })
   );
+  persistCache.PersistAsync();
+
   return rt;
 };
 
@@ -120,16 +124,20 @@ var findAllImportModules = (source, sourceName = "") => {
   return rt;
 };
 
-// change rescursive to iteration
+// change recursively to iteration
 var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
-  var moduleCache = {};
-  var moduleDeps = {};
+  var globalModuleCache = persistCache.get("GlobalModuleCache") || {};
+  // this time used modules
+  var modules = {};
+  var moduleDeps = persistCache.get("moduleDeps") || {};
+
+  // set entry
   moduleDeps["entry"] = sModuleNames;
   for (; ;) {
     var needToBeLoad = new Set();
     forEach(moduleDeps, dep => {
       forEach(dep, d => {
-        if (moduleCache[d] == undefined) {
+        if (modules[d] == undefined) {
           needToBeLoad.add(d);
         }
       });
@@ -142,19 +150,27 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
       await Promise.all(
         Array.from(needToBeLoad).map(async mName => {
           try {
-            var source = await fetchSource(mName, resourceRoot);
+            var source = globalModuleCache[mName];
+            if(!source){
+              await fetchSource(mName, resourceRoot);
+            }
             // use cache here
-            moduleCache[mName] = source;
+            modules[mName] = source;
             moduleDeps[mName] = findAllUi5StandardModules(source, mName);
           } catch (error) {
-            moduleCache[mName] = "";
+            modules[mName] = "";
             moduleDeps[mName] = [];
           }
         })
       );
     }
   }
-  return moduleCache;
+
+  persistCache.set("GlobalModuleCache", Object.assign(globalModuleCache, modules));
+  persistCache.set("moduleDeps", moduleDeps);
+  persistCache.PersistAsync();
+
+  return modules;
 };
 
 /**
