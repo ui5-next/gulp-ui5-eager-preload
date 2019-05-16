@@ -1,6 +1,7 @@
 var { reduce, forEach, isEmpty } = require("lodash");
 var { dirname, join: pathJoin } = require("path");
 var { warn } = require("console");
+
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
 var parseString = require('xml2js').parseString;
@@ -27,8 +28,8 @@ var readURLFromCache = async url => {
     var response = await fetch(url);
     urlContent = await response.text();
     GlobalResourceCache[hash] = urlContent;
+    persistCache.set("GlobalResourceCache", GlobalResourceCache);
   }
-  persistCache.set("GlobalResourceCache", GlobalResourceCache);
   return urlContent;
 };
 
@@ -150,13 +151,12 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
       await Promise.all(
         Array.from(needToBeLoad).map(async mName => {
           try {
-            var source = globalModuleCache[mName];
-            if(!source){
-              await fetchSource(mName, resourceRoot);
-            }
+            var source = await fetchSource(mName, resourceRoot);
             // use cache here
             modules[mName] = source;
-            moduleDeps[mName] = findAllUi5StandardModules(source, mName);
+            if (!moduleDeps[mName]) {
+              moduleDeps[mName] = findAllUi5StandardModules(source, mName);
+            }
           } catch (error) {
             modules[mName] = "";
             moduleDeps[mName] = [];
@@ -167,7 +167,7 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
   }
 
   persistCache.set("GlobalModuleCache", Object.assign(globalModuleCache, modules));
-  persistCache.set("moduleDeps", moduleDeps);
+  persistCache.set("moduleDeps", Object.assign(persistCache.get("moduleDeps"), moduleDeps));
   persistCache.PersistAsync();
 
   return modules;
@@ -223,24 +223,38 @@ var isUI5StandardModule = sModuleName => {
 };
 
 /**
+ * temporary in memory uglify cache
+ */
+var TmpUglifyNameCache = {};
+
+/**
  * To generate preload file content
  * @param {*} cache object
  * @param {*} resources list
  */
 var generatePreloadFile = (cache = {}, resources = {}) => {
+
   var modules = reduce(
     cache,
     (pre, moduleSource, moduleName) => {
       // ignore core modules, will be load on bootstrap
       if (!moduleName.startsWith("sap/ui/core")) {
-        pre[`${moduleName}.js`] = UglifyJS.minify(moduleSource).code;
+        var sourceHash = md5(moduleSource);
+        var compressed = TmpUglifyNameCache[sourceHash];
+        if(!compressed){
+          compressed = UglifyJS.minify( moduleSource).code;
+        }
+        pre[`${moduleName}.js`] = compressed;
+        TmpUglifyNameCache[sourceHash] = compressed;
       }
       return pre;
     }, {}
   );
+
   forEach(resources, (content, resourceName) => {
     modules[resourceName] = content;
   });
+
   return `sap.ui.require.preload(${JSON.stringify(modules)})`;
 };
 

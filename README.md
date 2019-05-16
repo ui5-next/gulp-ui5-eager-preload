@@ -33,7 +33,7 @@ eagerPreload({
   preload: true,
   sourceDir: join(__dirname, "./src"),
   // thirdparty library output library
-  thirdpartyLibPath: "_thridparty",
+  thirdpartyLibPath: "_thirdparty",
   // project namespace
   projectNameSpace: namespace,
   // additionalResources

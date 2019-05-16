@@ -78,6 +78,7 @@ module.exports = function({
 
   return through2.obj(async function(file, encoding, cb) {
     var libs = [];
+
     if (preload) {
       var distinctDeps = new Set(additionalModules);
 
@@ -131,13 +132,13 @@ module.exports = function({
       await Promise.all([preload_promise, preload_project_promise]);
 
       // generate preload file
-      var modules = resolveUI5Module(
-        Array.from(distinctDeps),
-        ui5ResourceRoot
-      );
+      var modulesPromise = resolveUI5Module(Array.from(distinctDeps), ui5ResourceRoot);
+
+      var resourcesPromise = fetchAllResource(additionalResources, ui5ResourceRoot);
+
+      var [modules, resources] = await Promise.all([modulesPromise, resourcesPromise]);
 
       libs = await findAllLibraries(Object.keys(modules));
-      var resources = await fetchAllResource(additionalResources, ui5ResourceRoot);
 
       this.push(
         new GulpFile({
