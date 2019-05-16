@@ -36,17 +36,17 @@ eagerPreload({
   thirdpartyLibPath: "_thridparty",
   // project namespace
   projectNameSpace: namespace,
-  // addtionalResources
-  addtionalResources: [
+  // additionalResources
+  additionalResources: [
     "sap/m/messagebundle_zh_CN.properties",
     "sap/ui/core/messagebundle_zh_CN.properties"
   ],
   // boot script
   bootScriptPath: "./index.js",
-  // addtionalModules 
+  // additionalModules 
   // sometimes ui5 will dynamic load resource
   // just use devtools find them and add them to here
-  addtionalModules: ["sap/m/routing/Router", "sap/ui/thirdparty/datajs"]
+  additionalModules: ["sap/m/routing/Router", "sap/ui/thirdparty/datajs"]
 })
 
 ```

@@ -57,8 +57,8 @@ module.exports = function({
   thirdpartyLibPath = ".",
   ui5ResourceRoot = defaultResourceRoot,
   projectNameSpace: projectNameSpace = "",
-  addtionalModules = [],
-  addtionalResources = [],
+  additionalModules = [],
+  additionalResources = [],
   theme,
   title,
   bootScript,
@@ -79,7 +79,7 @@ module.exports = function({
   return through2.obj(async function(file, encoding, cb) {
     var libs = [];
     if (preload) {
-      var distinctDeps = new Set(addtionalModules);
+      var distinctDeps = new Set(additionalModules);
       // preload js module
       await new Promise((resolve, reject) => {
         glob(`${sourceDir}/**/*.js`, async(err, files) => {
@@ -140,7 +140,7 @@ module.exports = function({
           contents: Buffer.from(
             generatePreloadFile(
               modules,
-              await fetchAllResource(addtionalResources, ui5ResourceRoot)
+              await fetchAllResource(additionalResources, ui5ResourceRoot)
             )
           )
         })
