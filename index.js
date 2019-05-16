@@ -31,7 +31,7 @@ var rollupTmpConfig = (mAsbPath, mName) => ({
     file: `${mName}.js`,
     format: "umd"
   },
-  onwarn: function (message) {
+  onwarn: function(message) {
     // do nothing
   },
   plugins: [rollupNodeResolve({ preferBuiltins: true }), rollupCjs(), uglify()]
@@ -50,7 +50,7 @@ var bundleModule = async mName => {
 
 var defaultResourceRoot = "https://openui5.hana.ondemand.com/resources/";
 
-module.exports = function ({
+module.exports = function({
   sourceDir,
   preload = false,
   outputFilePath,
@@ -76,13 +76,13 @@ module.exports = function ({
     );
   }
 
-  return through2.obj(async function (file, encoding, cb) {
+  return through2.obj(async function(file, encoding, cb) {
     var libs = [];
     if (preload) {
       var distinctDeps = new Set(addtionalModules);
       // preload js module
       await new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.js`, async (err, files) => {
+        glob(`${sourceDir}/**/*.js`, async(err, files) => {
           if (err) {
             reject(err);
             return;
@@ -106,7 +106,7 @@ module.exports = function ({
       });
       // preload xml view
       await new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.+(view|fragment).xml`, async (err, files) => {
+        glob(`${sourceDir}/**/*.+(view|fragment).xml`, async(err, files) => {
           if (err) {
             reject(err);
           } else {
@@ -169,6 +169,7 @@ module.exports = function ({
         cb(error);
       }
     }
+
     var indexHtml = generateIndexHtmlContent({
       resourceRoot: ui5ResourceRoot,
       projectNameSpace: projectNameSpace,
@@ -177,7 +178,9 @@ module.exports = function ({
       bootScript,
       bootScriptPath,
       preload,
-      inlineCssLink: libs.map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`),
+      inlineCssLink: libs
+        .filter(lib=>lib != "sap/suite/ui")
+        .map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`),
       resourceRoots: {
         [projectNameSpace]: ".",
         ...depsObject
