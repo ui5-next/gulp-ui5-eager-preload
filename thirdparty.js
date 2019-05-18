@@ -5,7 +5,7 @@ var { uglify } = require("rollup-plugin-uglify");
 
 var formatUI5Module = (umdCode, mName) => `sap.ui.define(function(){
   ${umdCode}
-  return window.${mName} || this.${mName}
+  return window["${mName}"] || this["${mName}"]
 })
 `;
 
