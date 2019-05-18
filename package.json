@@ -8,7 +8,7 @@
   },
   "scripts": {
     "clean": "rm -rf lib",
-    "release": "standard-version --commit-all --no-verify && git push --follow-tags origin master&&npm publish"
+    "release": "standard-version --commit-all --no-verify && git push --follow-tags origin master"
   },
   "devDependencies": {
     "@commitlint/cli": "^7.5.2",
