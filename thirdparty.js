@@ -3,6 +3,8 @@ var rollupNodeResolve = require("rollup-plugin-node-resolve");
 var rollupCjs = require("rollup-plugin-commonjs");
 var { uglify } = require("rollup-plugin-uglify");
 
+var libInmemoryCache = {};
+
 var formatUI5Module = (umdCode, mName) => `sap.ui.define(function(){
   ${umdCode}
   return window["${mName}"] || this["${mName}"]
@@ -30,10 +32,14 @@ var resolve = mName => {
  * @param {string} mName module name
  */
 var bundleModule = async mName => {
-  const absPath = resolve(mName);
-  const bundle = await rollup.rollup(rollupTmpConfig(absPath, mName));
-  const generated = await bundle.generate({ format: "umd", name: mName });
-  return formatUI5Module(generated.output[0].code, mName);
+  // if not found cache
+  if(!libInmemoryCache[mName]){
+    const absPath = resolve(mName);
+    const bundle = await rollup.rollup(rollupTmpConfig(absPath, mName));
+    const generated = await bundle.generate({ format: "umd", name: mName });
+    libInmemoryCache[mName] = formatUI5Module(generated.output[0].code, mName);
+  }
+  return libInmemoryCache[mName];
 };
 
 module.exports = { bundleModule };
