@@ -173,3 +173,5 @@ module.exports = function({
     cb();
   });
 };
+
+module.exports.componentPreload = require("./component_preload");
