@@ -167,7 +167,7 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
   }
 
   persistCache.set("GlobalModuleCache", Object.assign(globalModuleCache, modules));
-  persistCache.set("moduleDeps", Object.assign(persistCache.get("moduleDeps"), moduleDeps));
+  persistCache.set("moduleDeps", (Object.assign(persistCache.get("moduleDeps") || {}), moduleDeps));
   persistCache.PersistAsync();
 
   return modules;
