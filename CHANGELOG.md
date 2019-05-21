@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.11.7](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.11.6...v1.11.7) (2019-05-21)
+
+
+### Bug Fixes
+
+* **lib:** thirdparty library can not load without comp ([67facbd](https://github.com/Soontao/gulp-ui5-eager-preload/commit/67facbd))
+
+
+
 ### [1.11.6](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.11.5...v1.11.6) (2019-05-18)
 
 
