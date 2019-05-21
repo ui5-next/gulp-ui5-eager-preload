@@ -49,11 +49,38 @@ module.exports = function({
   return through2.obj(async function(file, encoding, cb) {
     var libs = [];
 
+    var packageJson = JSON.parse(file.contents.toString());
+    var thirdPartyDeps = packageJson.dependencies;
+    var thirdPartyDepsObject = {};
+    var thirdPartyDepsCode = {};
+
+    if (thirdPartyDeps) {
+      try {
+        await Promise.all(
+          Object.keys(thirdPartyDeps).map(async d => {
+            const id = `${thirdpartyLibPath}/${d}`;
+            thirdPartyDepsObject[d] = id;
+            const code = await bundleModule(d);
+            thirdPartyDepsCode[`${d}`] = code;
+            this.push(
+              new GulpFile({
+                path: `${targetJSPath}/${d}.js`,
+                contents: Buffer.from(code)
+              })
+            );
+          })
+        );
+      } catch (error) {
+        cb(error);
+      }
+    }
+
+
     if (preload) {
       var distinctDeps = new Set(additionalModules);
 
       // preload js module
-      var preload_promise = new Promise((resolve, reject) => {
+      var preloadPromise = new Promise((resolve, reject) => {
         glob(`${sourceDir}/**/*.js`, async(err, files) => {
           if (err) {
             reject(err);
@@ -78,7 +105,7 @@ module.exports = function({
       });
 
       // preload xml view
-      var preload_project_promise = new Promise((resolve, reject) => {
+      var preloadProjectPromise = new Promise((resolve, reject) => {
         glob(`${sourceDir}/**/*.+(view|fragment).xml`, async(err, files) => {
           if (err) {
             reject(err);
@@ -99,7 +126,7 @@ module.exports = function({
       });
 
       // await
-      await Promise.all([preload_promise, preload_project_promise]);
+      await Promise.all([preloadPromise, preloadProjectPromise]);
 
       // generate preload file
       var modulesPromise = resolveUI5Module(Array.from(distinctDeps), ui5ResourceRoot);
@@ -109,6 +136,8 @@ module.exports = function({
       var [modules, resources] = await Promise.all([modulesPromise, resourcesPromise]);
 
       libs = await findAllLibraries(Object.keys(modules));
+
+      modules = Object.assign(modules, thirdPartyDepsCode);
 
       this.push(
         new GulpFile({
@@ -124,27 +153,6 @@ module.exports = function({
 
     }
 
-    var packageJson = JSON.parse(file.contents.toString());
-    var deps = packageJson.dependencies;
-    var depsObject = {};
-    if (deps) {
-      try {
-        await Promise.all(
-          Object.keys(deps).map(async d => {
-            depsObject[d] = `${thirdpartyLibPath}/${d}`;
-            const code = await bundleModule(d);
-            this.push(
-              new GulpFile({
-                path: `${targetJSPath}/${d}.js`,
-                contents: Buffer.from(code)
-              })
-            );
-          })
-        );
-      } catch (error) {
-        cb(error);
-      }
-    }
 
     var indexHtml = generateIndexHtmlContent({
       resourceRoot: ui5ResourceRoot,
@@ -159,7 +167,7 @@ module.exports = function({
         .map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`),
       resourceRoots: {
         [projectNameSpace]: ".",
-        ...depsObject
+        ...thirdPartyDepsObject
       }
     });
 
