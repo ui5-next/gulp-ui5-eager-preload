@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.11.8](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.11.7...v1.11.8) (2019-05-21)
+
+
+### Bug Fixes
+
+* **cache-parse:** error ([e3a36c5](https://github.com/Soontao/gulp-ui5-eager-preload/commit/e3a36c5))
+
+
+
 ### [1.11.7](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.11.6...v1.11.7) (2019-05-21)
 
 
