@@ -14,7 +14,8 @@ var {
   resolveUI5Module,
   findAllLibraries,
   readURLFromCache,
-  readBinary
+  readBinary,
+  persistCache
 } = require("./ui5");
 
 var { bundleModule } = require("./thirdparty");
@@ -186,7 +187,6 @@ module.exports = function({
               target: `resources/${l}/themes/${theme}/library.css`,
               content: Buffer.from(await readURLFromCache(`${ui5ResourceRoot}${l}/themes/${theme}/library.css`))
             })),
-          // without cache
           fonts.map(async fontPath => ({ target: `resources/${fontPath}`, content: await readBinary(`${ui5ResourceRoot}${fontPath}`) }))
         )
       );
@@ -248,6 +248,8 @@ module.exports = function({
         contents: Buffer.from(indexHtml)
       })
     );
+
+    persistCache.Persist();
 
     cb();
   });

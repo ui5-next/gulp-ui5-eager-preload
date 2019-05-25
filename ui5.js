@@ -14,6 +14,8 @@ var persistCache = UI5Cache.Load();
 
 var FIVE_MINUTES = 5 * 60 * 1000;
 
+var BASE64 = "base64";
+
 /**
  * md5 hash
  */
@@ -23,8 +25,21 @@ var md5 = s => {
 };
 
 var readBinary = async url => {
-  var res = await fetch(url, { timeout: FIVE_MINUTES });
-  return await res.buffer();
+
+  var GlobalResourceCache = persistCache.get("GlobalResourceCache") || {};
+  var hash = md5(url);
+  var base64Content = GlobalResourceCache[hash];
+
+  if (!base64Content) {
+    var response = await fetch(url, { timeout: FIVE_MINUTES });
+    var buf = await response.buffer();
+    GlobalResourceCache[hash] = buf.toString(BASE64);
+    persistCache.set("GlobalResourceCache", GlobalResourceCache);
+    return buf;
+  } else {
+    return Buffer.from(base64Content, BASE64);
+  }
+
 };
 
 var readURLFromCache = async url => {
@@ -175,7 +190,6 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
 
   persistCache.set("GlobalModuleCache", Object.assign(globalModuleCache, modules));
   persistCache.set("moduleDeps", (Object.assign(persistCache.get("moduleDeps") || {}), moduleDeps));
-  persistCache.PersistAsync();
 
   return modules;
 };
@@ -276,5 +290,6 @@ module.exports = {
   resolveUI5Module,
   findAllLibraries,
   readURLFromCache,
-  readBinary
+  readBinary,
+  persistCache
 };
