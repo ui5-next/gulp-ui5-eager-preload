@@ -12,6 +12,8 @@ var { eachDeep } = require('deepdash')(require('lodash'));
 
 var persistCache = UI5Cache.Load();
 
+var FIVE_MINUTES = 5 * 60 * 1000;
+
 /**
  * md5 hash
  */
@@ -20,12 +22,17 @@ var md5 = s => {
   return md5.update(s).digest("hex");
 };
 
+var readBinary = async url => {
+  var res = await fetch(url, { timeout: FIVE_MINUTES });
+  return await res.buffer();
+};
+
 var readURLFromCache = async url => {
   var GlobalResourceCache = persistCache.get("GlobalResourceCache") || {};
   var hash = md5(url);
   var urlContent = GlobalResourceCache[hash];
   if (!urlContent) {
-    var response = await fetch(url);
+    var response = await fetch(url, { timeout: FIVE_MINUTES });
     urlContent = await response.text();
     GlobalResourceCache[hash] = urlContent;
     persistCache.set("GlobalResourceCache", GlobalResourceCache);
@@ -241,8 +248,8 @@ var generatePreloadFile = (cache = {}, resources = {}) => {
       if (!moduleName.startsWith("sap/ui/core")) {
         var sourceHash = md5(moduleSource);
         var compressed = TmpUglifyNameCache[sourceHash];
-        if(!compressed){
-          compressed = UglifyJS.minify( moduleSource).code;
+        if (!compressed) {
+          compressed = UglifyJS.minify(moduleSource).code;
         }
         pre[`${moduleName}.js`] = compressed;
         TmpUglifyNameCache[sourceHash] = compressed;
@@ -267,5 +274,7 @@ module.exports = {
   findAllImportModules,
   findAllUi5StandardModules,
   resolveUI5Module,
-  findAllLibraries
+  findAllLibraries,
+  readURLFromCache,
+  readBinary
 };

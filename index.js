@@ -12,7 +12,9 @@ var {
   findAllUi5ViewModules,
   fetchAllResource,
   resolveUI5Module,
-  findAllLibraries
+  findAllLibraries,
+  readURLFromCache,
+  readBinary
 } = require("./ui5");
 
 var { bundleModule } = require("./thirdparty");
@@ -31,7 +33,8 @@ module.exports = function({
   theme,
   title,
   bootScript,
-  bootScriptPath
+  bootScriptPath,
+  offline = false
 }) {
   if (!ui5ResourceRoot.endsWith("/")) {
     ui5ResourceRoot = `${ui5ResourceRoot}/`;
@@ -76,54 +79,58 @@ module.exports = function({
     }
 
 
-    if (preload) {
-      var distinctDeps = new Set(additionalModules);
+    /**
+     * distinct dependencies for this project
+     */
+    var distinctDeps = new Set(additionalModules);
 
-      // preload js module
-      var preloadPromise = new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.js`, async(err, files) => {
-          if (err) {
-            reject(err);
-            return;
+    // preload js module
+    var preloadPromise = new Promise((resolve, reject) => {
+      glob(`${sourceDir}/**/*.js`, async(err, files) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        var allDeps = files.map(f => {
+          var mName = f.replace(sourceDir, namepath);
+          var source = readFileSync(f, { encoding: "utf-8" });
+          return concat(
+            findAllImportModules(source, mName),
+            findAllUi5StandardModules(source, mName)
+          );
+        });
+        concat(...allDeps).forEach(d => {
+          if (isUI5StandardModule(d)) {
+            distinctDeps.add(d);
           }
-          var allDeps = files.map(f => {
+        });
+
+        resolve();
+      });
+    });
+
+    // preload xml view
+    var preloadProjectPromise = new Promise((resolve, reject) => {
+      glob(`${sourceDir}/**/*.+(view|fragment).xml`, async(err, files) => {
+        if (err) {
+          reject(err);
+        } else {
+          var allDeps = await Promise.all(files.map(f => {
             var mName = f.replace(sourceDir, namepath);
             var source = readFileSync(f, { encoding: "utf-8" });
-            return concat(
-              findAllImportModules(source, mName),
-              findAllUi5StandardModules(source, mName)
-            );
-          });
+            return findAllUi5ViewModules(source, mName);
+          }));
           concat(...allDeps).forEach(d => {
             if (isUI5StandardModule(d)) {
               distinctDeps.add(d);
             }
           });
-
           resolve();
-        });
+        }
       });
+    });
 
-      // preload xml view
-      var preloadProjectPromise = new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.+(view|fragment).xml`, async(err, files) => {
-          if (err) {
-            reject(err);
-          } else {
-            var allDeps = await Promise.all(files.map(f => {
-              var mName = f.replace(sourceDir, namepath);
-              var source = readFileSync(f, { encoding: "utf-8" });
-              return findAllUi5ViewModules(source, mName);
-            }));
-            concat(...allDeps).forEach(d => {
-              if (isUI5StandardModule(d)) {
-                distinctDeps.add(d);
-              }
-            });
-            resolve();
-          }
-        });
-      });
+    if (preload) {
 
       // await
       await Promise.all([preloadPromise, preloadProjectPromise]);
@@ -151,6 +158,71 @@ module.exports = function({
         })
       );
 
+    } else {
+      libs = findAllLibraries(distinctDeps);
+    }
+
+    var cssLinks = [];
+
+    if (offline) {
+      var uiCoreContent = await readURLFromCache(`${ui5ResourceRoot}sap-ui-core.js`);
+      var corePreloadContent = await readURLFromCache(`${ui5ResourceRoot}sap/ui/core/library-preload.js`);
+
+      var fonts = [
+        "sap/ui/core/themes/base/fonts/SAP-icons.woff2",
+        `sap/ui/core/themes/${theme}/fonts/72-Regular.woff2`,
+        `sap/ui/core/themes/${theme}/fonts/72-Regular.woff`,
+        `sap/ui/core/themes/${theme}/fonts/72-Regular-full.woff2`,
+        `sap/ui/core/themes/${theme}/fonts/72-Regular-full.woff`,
+        "sap/ui/core/themes/base/fonts/SAP-icons.woff",
+        "sap/ui/core/themes/base/fonts/SAP-icons.ttf"
+      ];
+
+      var files = await Promise.all(
+        concat(
+          libs
+            .filter(lib => lib != "sap/suite/ui")
+            .map(async l => ({
+              target: `resources/${l}/themes/${theme}/library.css`,
+              content: Buffer.from(await readURLFromCache(`${ui5ResourceRoot}${l}/themes/${theme}/library.css`))
+            })),
+          // without cache
+          fonts.map(async fontPath => ({ target: `resources/${fontPath}`, content: await readBinary(`${ui5ResourceRoot}${fontPath}`) }))
+        )
+      );
+
+
+      this.push(
+        new GulpFile({
+          path: "resources/sap-ui-core.js",
+          contents: Buffer.from(uiCoreContent)
+        })
+      );
+      this.push(
+        new GulpFile({
+          path: "resources/sap/ui/core/library-preload.js",
+          contents: Buffer.from(corePreloadContent)
+        })
+      );
+      files.forEach(f => {
+        this.push(
+          new GulpFile({
+            path: f.target,
+            contents: f.content
+          })
+        );
+      });
+
+      cssLinks = libs
+        .filter(lib => lib != "sap/suite/ui")
+        .map(l => `./resources/${l}/themes/${theme}/library.css`);
+
+    } else {
+
+      cssLinks = libs
+        .filter(lib => lib != "sap/suite/ui")
+        .map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`);
+
     }
 
 
@@ -162,9 +234,8 @@ module.exports = function({
       bootScript,
       bootScriptPath,
       preload,
-      inlineCssLink: libs
-        .filter(lib=>lib != "sap/suite/ui")
-        .map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`),
+      offline,
+      inlineCssLink: cssLinks,
       resourceRoots: {
         [projectNameSpace]: ".",
         ...thirdPartyDepsObject

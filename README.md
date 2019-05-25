@@ -31,6 +31,8 @@ eagerPreload({
   ui5ResourceRoot: "https://openui5.hana.ondemand.com/resources",
   // enable preload logic
   preload: true,
+  // offline mode, will not load resource from ui5 resource root directly
+  offline: true,
   sourceDir: join(__dirname, "./src"),
   // thirdparty library output library
   thirdpartyLibPath: "_thirdparty",

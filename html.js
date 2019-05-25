@@ -7,11 +7,28 @@ var generateIndexHtmlContent = ({
   preload = false,
   title = "UI5 Application",
   inlineCssLink = [],
+  inlineJsSrc = [],
+  offline = false,
   resourceRoots = { projectNameSpace: "." }
 }) => {
+
+  var sapUiCodeLink = `${resourceRoot}sap-ui-core.js`;
+
   if (!resourceRoot.endsWith("/")) {
     resourceRoot = `${resourceRoot}/`;
   }
+
+  if (offline) {
+    sapUiCodeLink = "./resources/sap-ui-core.js";
+  }
+
+  if (preload) {
+    inlineJsSrc.push("./preload.js");
+    inlineJsSrc.push("./Component-preload.js");
+  }
+
+  var jsSrcs = inlineJsSrc.map(l => `<script src="${l}"></script>`).join("\n");
+
   var cssLinks = inlineCssLink
     .map(l => `<link rel="stylesheet" href="${l}">`)
     .join("\n");
@@ -35,14 +52,13 @@ var generateIndexHtmlContent = ({
       </title>
       <script 
           id="sap-ui-bootstrap" 
-          src="${resourceRoot}sap-ui-core.js" 
+          src="${sapUiCodeLink}" 
           data-sap-ui-theme="${theme}"
           data-sap-ui-compatVersion="edge" 
           data-sap-ui-resourceroots='${JSON.stringify(resourceRoots)}'
       >
       </script>
-      ${preload ? '<script src="./preload.js"></script>' : ""}
-      ${preload ? '<script src="./Component-preload.js"></script>' : ""}
+      ${jsSrcs}
   </head>
 
   ${cssLinks}
