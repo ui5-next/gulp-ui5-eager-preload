@@ -179,6 +179,8 @@ module.exports = function({
         `sap/ui/core/themes/${theme}/fonts/72-Regular.woff`,
         `sap/ui/core/themes/${theme}/fonts/72-Regular-full.woff2`,
         `sap/ui/core/themes/${theme}/fonts/72-Regular-full.woff`,
+        `sap/ui/core/themes/${theme}/fonts/72-Bold.woff2`,
+        `sap/ui/core/themes/${theme}/fonts/72-Bold.woff`,
         "sap/ui/core/themes/base/fonts/SAP-icons.woff",
         "sap/ui/core/themes/base/fonts/SAP-icons.ttf"
       ];
