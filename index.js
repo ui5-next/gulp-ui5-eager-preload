@@ -61,14 +61,16 @@ module.exports = function({
     if (thirdPartyDeps) {
       try {
         await Promise.all(
-          Object.keys(thirdPartyDeps).map(async d => {
-            const id = `${thirdpartyLibPath}/${d}`;
-            thirdPartyDepsObject[d] = id;
-            const code = await bundleModule(d);
-            thirdPartyDepsCode[`${d}`] = code;
+          Object.keys(thirdPartyDeps).map(async packageDepName => {
+            // removing non-alphanumeric chars
+            const alphanumericDepName = packageDepName.replace(/\W/g, '');
+            thirdPartyDepsObject[alphanumericDepName] = `${thirdpartyLibPath}/${alphanumericDepName}`;
+            // use original dep name to resolve dep
+            const code = await bundleModule(packageDepName);
+            thirdPartyDepsCode[`${alphanumericDepName}`] = code;
             this.push(
               new GulpFile({
-                path: `${targetJSPath}/${d}.js`,
+                path: `${targetJSPath}/${alphanumericDepName}.js`,
                 contents: Buffer.from(code)
               })
             );

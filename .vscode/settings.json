@@ -6,6 +6,9 @@
     "files.eol": "\n",
     "eslint.autoFixOnSave": true,
     "cSpell.words": [
-        "messagebundle"
+        "Builtins",
+        "messagebundle",
+        "onwarn",
+        "thirdparty"
     ]
 }
