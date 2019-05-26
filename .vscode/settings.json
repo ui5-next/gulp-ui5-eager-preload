@@ -4,5 +4,8 @@
     "editor.insertSpaces": true,
     "editor.wordWrap": "on",
     "files.eol": "\n",
-    "eslint.autoFixOnSave": true
+    "eslint.autoFixOnSave": true,
+    "cSpell.words": [
+        "messagebundle"
+    ]
 }

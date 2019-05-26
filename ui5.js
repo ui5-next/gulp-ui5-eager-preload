@@ -208,7 +208,6 @@ var UI5Libraries = [
   "sap/ui/comp",
   "sap/m",
   "sap/f",
-  "sap/suite/ui",
   "sap/gantt",
   "sap/ushell",
   "sap/tnt",

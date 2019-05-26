@@ -55,9 +55,7 @@ module.exports = function(options) {
       return;
     }
 
-    log.info('gulp-ui5-preload',
-      colors.magenta('number of files combined to preload file ' + options.fileName + ': ' + Object.keys(preloadModules).length)
-    );
+    // remove logger
 
     var template = 'jQuery.sap.registerPreloadedModules(JSON_CONTENT);';
     var suffix = '.Component-preload';

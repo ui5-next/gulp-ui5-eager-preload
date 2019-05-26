@@ -131,19 +131,23 @@ module.exports = function({
       });
     });
 
+    // await analyze project modules
+    await Promise.all([preloadPromise, preloadProjectPromise]);
+
     if (preload) {
 
-      // await
-      await Promise.all([preloadPromise, preloadProjectPromise]);
-
       // generate preload file
-      var modulesPromise = resolveUI5Module(Array.from(distinctDeps), ui5ResourceRoot);
-
-      var resourcesPromise = fetchAllResource(additionalResources, ui5ResourceRoot);
-
-      var [modules, resources] = await Promise.all([modulesPromise, resourcesPromise]);
+      var modules = await resolveUI5Module(Array.from(distinctDeps), ui5ResourceRoot);
 
       libs = await findAllLibraries(Object.keys(modules));
+
+      additionalResources = additionalResources.concat(libs.map(l => `${l}/messagebundle_zh_CN.properties`));
+      additionalResources = additionalResources.concat(libs.map(l => `${l}/messagebundle_en.properties`));
+      additionalResources = additionalResources.concat(libs.map(l => `${l}/messagebundle.properties`));
+      additionalResources = additionalResources.concat(libs.map(l => `${l}/messagebundle_en_US.properties`));
+      additionalResources = additionalResources.concat(libs.map(l => `${l}/messagebundle_en_UK.properties`));
+
+      var resources = await fetchAllResource(additionalResources, ui5ResourceRoot);
 
       modules = Object.assign(modules, thirdPartyDepsCode);
 
@@ -181,11 +185,11 @@ module.exports = function({
 
       var files = await Promise.all(
         concat(
-          libs.filter(lib => lib != "sap/suite/ui").map(async l => ({
+          libs.map(async l => ({
             target: `resources/${l}/themes/${theme}/library.css`,
             content: Buffer.from(await readURLFromCache(`${ui5ResourceRoot}${l}/themes/${theme}/library.css`))
           })),
-          libs.filter(lib => lib != "sap/suite/ui").map(async l => ({
+          libs.map(async l => ({
             target: `resources/${l}/themes/${theme}/library-parameters.json`,
             content: Buffer.from(await readURLFromCache(`${ui5ResourceRoot}${l}/themes/${theme}/library-parameters.json`))
           })),
@@ -214,17 +218,9 @@ module.exports = function({
           })
         );
       });
-
-      cssLinks = libs
-        .filter(lib => lib != "sap/suite/ui")
-        .map(l => `./resources/${l}/themes/${theme}/library.css`);
-
+      cssLinks = libs.map(l => `./resources/${l}/themes/${theme}/library.css`);
     } else {
-
-      cssLinks = libs
-        .filter(lib => lib != "sap/suite/ui")
-        .map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`);
-
+      cssLinks = libs.map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`);
     }
 
 
