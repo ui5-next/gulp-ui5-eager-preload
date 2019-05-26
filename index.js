@@ -181,12 +181,14 @@ module.exports = function({
 
       var files = await Promise.all(
         concat(
-          libs
-            .filter(lib => lib != "sap/suite/ui")
-            .map(async l => ({
-              target: `resources/${l}/themes/${theme}/library.css`,
-              content: Buffer.from(await readURLFromCache(`${ui5ResourceRoot}${l}/themes/${theme}/library.css`))
-            })),
+          libs.filter(lib => lib != "sap/suite/ui").map(async l => ({
+            target: `resources/${l}/themes/${theme}/library.css`,
+            content: Buffer.from(await readURLFromCache(`${ui5ResourceRoot}${l}/themes/${theme}/library.css`))
+          })),
+          libs.filter(lib => lib != "sap/suite/ui").map(async l => ({
+            target: `resources/${l}/themes/${theme}/library-parameters.json`,
+            content: Buffer.from(await readURLFromCache(`${ui5ResourceRoot}${l}/themes/${theme}/library-parameters.json`))
+          })),
           fonts.map(async fontPath => ({ target: `resources/${fontPath}`, content: await readBinary(`${ui5ResourceRoot}${fontPath}`) }))
         )
       );
