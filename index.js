@@ -173,7 +173,7 @@ module.exports = function({
       var uiCoreContent = await readURLFromCache(`${ui5ResourceRoot}sap-ui-core.js`);
       var corePreloadContent = await readURLFromCache(`${ui5ResourceRoot}sap/ui/core/library-preload.js`);
 
-      var fonts = [
+      var offlineFiles = [
         `sap/ui/core/themes/${theme}/fonts/72-Regular.woff2`,
         `sap/ui/core/themes/${theme}/fonts/72-Regular.woff`,
         `sap/ui/core/themes/${theme}/fonts/72-Regular-full.woff2`,
@@ -184,7 +184,8 @@ module.exports = function({
         `sap/ui/core/themes/${theme}/fonts/72-Bold-full.woff`,
         "sap/ui/core/themes/base/fonts/SAP-icons.woff2",
         "sap/ui/core/themes/base/fonts/SAP-icons.woff",
-        "sap/ui/core/themes/base/fonts/SAP-icons.ttf"
+        "sap/ui/core/themes/base/fonts/SAP-icons.ttf",
+        "sap/ui/core/cldr/zh_CN.json"
       ];
 
       var files = await Promise.all(
@@ -197,7 +198,7 @@ module.exports = function({
             target: `resources/${l}/themes/${theme}/library-parameters.json`,
             content: Buffer.from(await readURLFromCache(`${ui5ResourceRoot}${l}/themes/${theme}/library-parameters.json`))
           })),
-          fonts.map(async fontPath => ({ target: `resources/${fontPath}`, content: await readBinary(`${ui5ResourceRoot}${fontPath}`) }))
+          offlineFiles.map(async fontPath => ({ target: `resources/${fontPath}`, content: await readBinary(`${ui5ResourceRoot}${fontPath}`) }))
         )
       );
 
