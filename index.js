@@ -174,13 +174,15 @@ module.exports = function({
       var corePreloadContent = await readURLFromCache(`${ui5ResourceRoot}sap/ui/core/library-preload.js`);
 
       var fonts = [
-        "sap/ui/core/themes/base/fonts/SAP-icons.woff2",
         `sap/ui/core/themes/${theme}/fonts/72-Regular.woff2`,
         `sap/ui/core/themes/${theme}/fonts/72-Regular.woff`,
         `sap/ui/core/themes/${theme}/fonts/72-Regular-full.woff2`,
         `sap/ui/core/themes/${theme}/fonts/72-Regular-full.woff`,
         `sap/ui/core/themes/${theme}/fonts/72-Bold.woff2`,
         `sap/ui/core/themes/${theme}/fonts/72-Bold.woff`,
+        `sap/ui/core/themes/${theme}/fonts/72-Bold-full.woff2`,
+        `sap/ui/core/themes/${theme}/fonts/72-Bold-full.woff`,
+        "sap/ui/core/themes/base/fonts/SAP-icons.woff2",
         "sap/ui/core/themes/base/fonts/SAP-icons.woff",
         "sap/ui/core/themes/base/fonts/SAP-icons.ttf"
       ];

@@ -1,6 +1,8 @@
 var { reduce, forEach, isEmpty } = require("lodash");
 var { dirname, join: pathJoin } = require("path");
 var { warn } = require("console");
+var log = require('fancy-log');
+var colors = require('ansi-colors');
 
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
@@ -48,6 +50,9 @@ var readURLFromCache = async url => {
   var urlContent = GlobalResourceCache[hash];
   if (!urlContent) {
     var response = await fetch(url, { timeout: FIVE_MINUTES });
+    if (response.status == 404) {
+      log.error('gulp-ui5-eager-preload', colors.red(`Can not found: ${url}`));
+    }
     urlContent = await response.text();
     GlobalResourceCache[hash] = urlContent;
     persistCache.set("GlobalResourceCache", GlobalResourceCache);
@@ -80,31 +85,55 @@ var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
       }
     })
   );
-  persistCache.PersistAsync();
 
   return rt;
 };
 
 /**
- * find modules in sap.ui.define parttern
+ * find modules in sap.ui.define pattern
  */
 var findAllUi5StandardModules = (source, sourceName) => {
   var base = dirname(sourceName);
-  var groups = /sap\.ui\.define\(.*?(\[.*?\])/g.exec(source);
-  if (groups && groups.length > 0) {
-    var sArray = groups[1].replace(/'/g, '"');
-    const dependencies = JSON.parse(sArray);
 
-    return dependencies.map(d => {
-      if (d.startsWith("./") || d.startsWith("../")) {
-        d = pathJoin(base, d);
-        // replace \ to / after join
-        d = d.replace(/\\/g, "/");
-      }
-      return d;
-    });
+  var deps = [];
+
+  var reqMultiReg = /sap\.ui\.require\((\[".*?\"].*?)/g;
+
+  var group;
+
+  while ((group = reqMultiReg.exec(source)) != undefined) {
+    try {
+      deps = deps.concat(JSON.parse(group[1].replace(/'/g, '"')));
+    } catch (error) {
+      log.error(`can not parse sap.ui.require([...]) with ${group[1]} in ${sourceName}`);
+    }
   }
-  return [];
+
+  var reqSingleReg = /sap\.ui\.require\("(.*?)"\)/g;
+
+  while ((group = reqSingleReg.exec(source)) != undefined) {
+    try {
+      deps = deps.concat(group[1]);
+    } catch (error) {
+      log.error(`can not parse sap.ui.require("...") with ${group[1]} in ${sourceName}`);
+    }
+  }
+
+  var defGroups = /sap\.ui\.define\(.*?(\[.*?\])/g.exec(source);
+
+  if (defGroups && defGroups.length > 0) {
+    var sArray = defGroups[1].replace(/'/g, '"');
+    deps = deps.concat(JSON.parse(sArray));
+  }
+
+  return deps.map(d => {
+    if (d.startsWith("./") || d.startsWith("../")) {
+      d = pathJoin(base, d);
+      // replace \ to / after join
+      d = d.replace(/\\/g, "/");
+    }
+    return d;
+  });
 };
 
 var findAllUi5ViewModules = async(source, sourceName) => {
@@ -152,12 +181,15 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
   var globalModuleCache = persistCache.get("GlobalModuleCache") || {};
   // this time used modules
   var modules = {};
-  var moduleDeps = persistCache.get("moduleDeps") || {};
+  // without cache
+  var moduleDeps = {};
 
   // set entry
   moduleDeps["entry"] = sModuleNames;
+
   for (; ;) {
     var needToBeLoad = new Set();
+
     forEach(moduleDeps, dep => {
       forEach(dep, d => {
         if (modules[d] == undefined) {
@@ -165,6 +197,7 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
         }
       });
     });
+
     if (isEmpty(needToBeLoad)) {
       // no more dependencies need to be analyzed
       // break from this loop
@@ -173,7 +206,13 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
       await Promise.all(
         Array.from(needToBeLoad).map(async mName => {
           try {
-            var source = await fetchSource(mName, resourceRoot);
+            var source = "";
+            try {
+              source = await fetchSource(mName, resourceRoot);
+            } catch (error) {
+              // retry once
+              source = await fetchSource(mName, resourceRoot);
+            }
             // use cache here
             modules[mName] = source;
             if (!moduleDeps[mName]) {
@@ -189,7 +228,6 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
   }
 
   persistCache.set("GlobalModuleCache", Object.assign(globalModuleCache, modules));
-  persistCache.set("moduleDeps", (Object.assign(persistCache.get("moduleDeps") || {}), moduleDeps));
 
   return modules;
 };

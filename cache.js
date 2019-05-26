@@ -1,8 +1,9 @@
 var { readFileSync, writeFileSync, existsSync, writeFile } = require("fs");
 var { tmpdir } = require("os");
 var path = require("path");
+var pkg = require("./package");
 
-var cachePath = path.join(tmpdir(), "ui5_cache");
+var cachePath = path.join(tmpdir(), `ui5_cache_${pkg.version}`);
 
 class UI5Cache extends Map {
 
