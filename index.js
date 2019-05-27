@@ -63,7 +63,7 @@ module.exports = function({
         await Promise.all(
           Object.keys(thirdPartyDeps).map(async packageDepName => {
             // removing non-alphanumeric chars
-            const alphanumericDepName = packageDepName.replace(/\W/g, '');
+            const alphanumericDepName = packageDepName;
             thirdPartyDepsObject[alphanumericDepName] = `${thirdpartyLibPath}/${alphanumericDepName}`;
             // use original dep name to resolve dep
             const code = await bundleModule(packageDepName);

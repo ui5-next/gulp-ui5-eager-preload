@@ -2,7 +2,6 @@ var rollup = require("rollup");
 var rollupNodeResolve = require("rollup-plugin-node-resolve");
 var rollupCjs = require("rollup-plugin-commonjs");
 var { uglify } = require("rollup-plugin-uglify");
-var builtins = require("rollup-plugin-node-builtins");
 var log = require('fancy-log');
 var colors = require('ansi-colors');
 
@@ -23,7 +22,7 @@ var rollupTmpConfig = (mAsbPath, mName) => ({
   onwarn: function(message) {
     log.warn(colors.yellow(message));
   },
-  plugins: [rollupNodeResolve({ preferBuiltins: true }), rollupCjs(), uglify(), builtins()]
+  plugins: [rollupNodeResolve({ preferBuiltins: true }), rollupCjs(), uglify()]
 });
 
 var resolve = mName => {
