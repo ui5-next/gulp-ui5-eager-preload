@@ -27,7 +27,6 @@
     "plugin-error": "^1.0.1",
     "rollup": "^1.7.3",
     "rollup-plugin-commonjs": "^9.2.2",
-    "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-uglify": "^6.0.0",
     "through2": "^2.0.3",
