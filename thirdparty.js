@@ -5,6 +5,8 @@ var { uglify } = require("rollup-plugin-uglify");
 var log = require('fancy-log');
 var colors = require('ansi-colors');
 
+var rollupReplace = require("rollup-plugin-replace");
+
 var libInMemoryCache = {};
 
 var formatUI5Module = (umdCode, mName) => `sap.ui.define(function(){
@@ -22,7 +24,14 @@ var rollupTmpConfig = (mAsbPath, mName) => ({
   onwarn: function(message) {
     log.warn(`[bundle-thirdparty][${mName}]`, colors.yellow(message));
   },
-  plugins: [rollupNodeResolve({ preferBuiltins: true }), rollupCjs(), uglify()]
+  plugins: [
+    rollupNodeResolve({ preferBuiltins: true }),
+    rollupCjs(),
+    uglify(),
+    rollupReplace({
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || "development")
+    })
+  ]
 });
 
 var resolve = mName => {
