@@ -20,7 +20,7 @@ var rollupTmpConfig = (mAsbPath, mName) => ({
     format: "umd"
   },
   onwarn: function(message) {
-    log.warn(colors.yellow(message));
+    log.warn(`[bundle-thirdparty][${mName}]`, colors.yellow(message));
   },
   plugins: [rollupNodeResolve({ preferBuiltins: true }), rollupCjs(), uglify()]
 });
