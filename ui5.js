@@ -113,9 +113,9 @@ var findAllUi5StandardModules = (source, sourceName) => {
 
   while ((group = reqSyncReg.exec(source)) != undefined) {
     try {
-      deps = deps.concat(JSON.parse(group[1].replace(/'/g, '"')));
+      deps = deps.concat(group[1]);
     } catch (error) {
-      log.error(`can not parse sap.ui.require([...]) with ${group[1]} in ${sourceName}`);
+      log.error(`can not parse sap.ui.requireSync([...]) with ${group[1]} in ${sourceName}`);
     }
   }
 
