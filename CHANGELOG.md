@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.15](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.12.14...v1.12.15) (2019-05-31)
+
+
+### Bug Fixes
+
+* **require:** sync wrong format module ([0ded040](https://github.com/Soontao/gulp-ui5-eager-preload/commit/0ded040))
+
+
+
 ### [1.12.14](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.12.13...v1.12.14) (2019-05-31)
 
 
