@@ -109,6 +109,16 @@ var findAllUi5StandardModules = (source, sourceName) => {
     }
   }
 
+  var reqSyncReg = /sap\.ui\.requireSync\("(.*?)"\)/g;
+
+  while ((group = reqSyncReg.exec(source)) != undefined) {
+    try {
+      deps = deps.concat(JSON.parse(group[1].replace(/'/g, '"')));
+    } catch (error) {
+      log.error(`can not parse sap.ui.require([...]) with ${group[1]} in ${sourceName}`);
+    }
+  }
+
   var reqSingleReg = /sap\.ui\.require\("(.*?)"\)/g;
 
   while ((group = reqSingleReg.exec(source)) != undefined) {
