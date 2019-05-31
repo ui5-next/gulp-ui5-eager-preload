@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.16](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.12.15...v1.12.16) (2019-05-31)
+
+
+### Bug Fixes
+
+* **rollup:** warning about no default export ([72ebce2](https://github.com/Soontao/gulp-ui5-eager-preload/commit/72ebce2))
+
+
+
 ### [1.12.15](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.12.14...v1.12.15) (2019-05-31)
 
 
