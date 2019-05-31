@@ -187,7 +187,8 @@ module.exports = function({
         "sap/ui/core/themes/base/fonts/SAP-icons.woff2",
         "sap/ui/core/themes/base/fonts/SAP-icons.woff",
         "sap/ui/core/themes/base/fonts/SAP-icons.ttf",
-        "sap/ui/core/cldr/zh_CN.json"
+        "sap/ui/core/cldr/zh_CN.json",
+        "sap-ui-version.json"
       ];
 
       var files = await Promise.all(
