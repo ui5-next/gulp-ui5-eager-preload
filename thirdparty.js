@@ -19,7 +19,8 @@ var rollupTmpConfig = (mAsbPath, mName) => ({
   input: mAsbPath,
   output: {
     file: `${mName}.js`,
-    format: "umd"
+    format: "umd",
+    exports: 'named'
   },
   onwarn: function(message) {
     log.warn(`[bundle-thirdparty][${mName}]`, colors.yellow(message));
