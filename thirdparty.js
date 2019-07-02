@@ -1,6 +1,7 @@
 var rollup = require("rollup");
 var rollupNodeResolve = require("rollup-plugin-node-resolve");
 var rollupCjs = require("rollup-plugin-commonjs");
+var rollupJson = require("rollup-plugin-json");
 var { uglify } = require("rollup-plugin-uglify");
 var log = require('fancy-log');
 var colors = require('ansi-colors');
@@ -28,6 +29,7 @@ var rollupTmpConfig = (mAsbPath, mName) => ({
   plugins: [
     rollupNodeResolve({ preferBuiltins: true }),
     rollupCjs(),
+    rollupJson(),
     uglify(),
     rollupReplace({
       'process.env.NODE_ENV': JSON.stringify("production")
