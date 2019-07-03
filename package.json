@@ -1,6 +1,6 @@
 {
   "name": "gulp-ui5-eager-preload",
-  "version": "1.12.17",
+  "version": "1.12.18",
   "main": "index.js",
   "author": {
     "name": "Theo Sun",
