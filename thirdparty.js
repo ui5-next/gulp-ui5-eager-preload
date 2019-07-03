@@ -15,25 +15,32 @@ var formatUI5Module = (umdCode, mName) => `sap.ui.define(function(){
 })
 `;
 
-var rollupTmpConfig = (mAsbPath, mName) => ({
-  input: mAsbPath,
-  output: {
-    file: `${mName}.js`,
-    format: "umd",
-    exports: 'named'
-  },
-  onwarn: function(message) {
-    log.warn(`[bundle-thirdparty][${mName}]`, colors.yellow(message));
-  },
-  plugins: [
+var rollupTmpConfig = (mAsbPath, mName, minify = false) => {
+  const plugins = [
     rollupNodeResolve({ preferBuiltins: true }),
     rollupCjs(),
-    uglify(),
     rollupReplace({
       'process.env.NODE_ENV': JSON.stringify("production")
     })
-  ]
-});
+  ];
+
+  if (minify) {
+    plugins.push(uglify());
+  }
+
+  return {
+    input: mAsbPath,
+    output: {
+      file: `${mName}.js`,
+      format: "umd",
+      exports: 'named'
+    },
+    onwarn: function(message) {
+      log.warn(`[bundle-thirdparty][${mName}]`, colors.yellow(message));
+    },
+    plugins
+  };
+};
 
 var resolve = mName => {
   return require.resolve(mName);
@@ -43,11 +50,11 @@ var resolve = mName => {
  * bundle thirdparty library
  * @param {string} mName module name
  */
-var bundleModule = async mName => {
+var bundleModule = async(mName, minify = false) => {
   // if not found cache
   if (!libInMemoryCache[mName]) {
     const absPath = resolve(mName);
-    const bundle = await rollup.rollup(rollupTmpConfig(absPath, mName));
+    const bundle = await rollup.rollup(rollupTmpConfig(absPath, mName, minify));
     const generated = await bundle.generate({ format: "umd", name: mName });
     libInMemoryCache[mName] = formatUI5Module(generated.output[0].code, mName);
   }

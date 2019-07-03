@@ -33,6 +33,7 @@ module.exports = function({
   additionalResources = [],
   theme,
   title,
+  production = false,
   bootScript,
   bootScriptPath,
   offline = false
@@ -66,7 +67,7 @@ module.exports = function({
             const alphanumericDepName = packageDepName;
             thirdPartyDepsObject[alphanumericDepName] = `${thirdpartyLibPath}/${alphanumericDepName}`;
             // use original dep name to resolve dep
-            const code = await bundleModule(packageDepName);
+            const code = await bundleModule(packageDepName, production);
             thirdPartyDepsCode[`${alphanumericDepName}`] = code;
             this.push(
               new GulpFile({
