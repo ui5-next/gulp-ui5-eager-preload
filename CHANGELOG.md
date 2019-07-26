@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.20](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.12.19...v1.12.20) (2019-07-26)
+
+
+### Bug Fixes
+
+* sap.ui.commons not work ([808a44a](https://github.com/Soontao/gulp-ui5-eager-preload/commit/808a44a))
+
+
+
 ### [1.12.19](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.12.18...v1.12.19) (2019-07-03)
 
 
