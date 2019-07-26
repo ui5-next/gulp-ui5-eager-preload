@@ -254,6 +254,7 @@ var UI5Libraries = [
   "sap/ui/layout",
   "sap/ui/unified",
   "sap/ui/table",
+  "sap/ui/commons",
   "sap/ui/viz",
   "sap/ui/suite",
   "sap/ui/richtexteditor",
