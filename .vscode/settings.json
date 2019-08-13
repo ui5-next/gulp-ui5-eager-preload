@@ -2,14 +2,18 @@
     "editor.fontSize": 15,
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
+    "editor.formatOnSave": false,
     "editor.wordWrap": "on",
     "files.eol": "\n",
     "eslint.autoFixOnSave": true,
     "cSpell.words": [
         "Builtins",
+        "datajs",
+        "devtools",
         "messagebundle",
         "namepath",
         "onwarn",
+        "preload",
         "thirdparty"
     ]
 }

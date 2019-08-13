@@ -6,7 +6,6 @@ var glob = require("glob");
 var { generateIndexHtmlContent } = require("./html");
 var {
   generatePreloadFile,
-  isUI5StandardModule,
   findAllImportModules,
   findAllUi5StandardModules,
   findAllUi5ViewModules,
@@ -54,34 +53,8 @@ module.exports = function({
   return through2.obj(async function(file, encoding, cb) {
     var libs = [];
 
-    var packageJson = JSON.parse(file.contents.toString());
-    var thirdPartyDeps = packageJson.dependencies;
-    var thirdPartyDepsObject = {};
-    var thirdPartyDepsCode = {};
 
-    if (thirdPartyDeps) {
-      try {
-        await Promise.all(
-          Object.keys(thirdPartyDeps).map(async packageDepName => {
-            // removing non-alphanumeric chars
-            const alphanumericDepName = packageDepName;
-            thirdPartyDepsObject[alphanumericDepName] = `${thirdpartyLibPath}/${alphanumericDepName}`;
-            // use original dep name to resolve dep
-            const code = await bundleModule(packageDepName, production);
-            thirdPartyDepsCode[`${alphanumericDepName}`] = code;
-            this.push(
-              new GulpFile({
-                path: `${targetJSPath}/${alphanumericDepName}.js`,
-                contents: Buffer.from(code)
-              })
-            );
-          })
-        );
-      } catch (error) {
-        cb(error);
-      }
-    }
-
+    var thirdpartyLibs = [];
 
     /**
      * distinct dependencies for this project
@@ -104,8 +77,10 @@ module.exports = function({
           );
         });
         concat(...allDeps).forEach(d => {
-          if (isUI5StandardModule(d)) {
+          if (d.startsWith("sap")) {
             distinctDeps.add(d);
+          } else if (!d.startsWith(namepath)) {
+            thirdpartyLibs.push(d);
           }
         });
 
@@ -125,7 +100,7 @@ module.exports = function({
             return findAllUi5ViewModules(source, mName);
           }));
           concat(...allDeps).forEach(d => {
-            if (isUI5StandardModule(d)) {
+            if (d.startsWith("sap")) {
               distinctDeps.add(d);
             }
           });
@@ -136,6 +111,31 @@ module.exports = function({
 
     // await analyze project modules
     await Promise.all([preloadPromise, preloadProjectPromise]);
+
+    var thirdPartyDepsObject = {};
+    var thirdPartyDepsCode = {};
+
+    if (thirdpartyLibs) {
+      try {
+        await Promise.all(
+          thirdpartyLibs.map(async packageDepName => {
+            // removing non-alphanumeric chars
+            thirdPartyDepsObject[packageDepName] = `${thirdpartyLibPath}/${packageDepName}`;
+            // use original dep name to resolve dep
+            const code = await bundleModule(packageDepName, production);
+            thirdPartyDepsCode[`${packageDepName}`] = code;
+            this.push(
+              new GulpFile({
+                path: `${targetJSPath}/${packageDepName}.js`,
+                contents: Buffer.from(code)
+              })
+            );
+          })
+        );
+      } catch (error) {
+        cb(error);
+      }
+    }
 
     if (preload) {
 
