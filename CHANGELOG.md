@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.13.0](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.12.20...v1.13.0) (2019-08-13)
+
+
+### Features
+
+* import deep npm module ([f1e4526](https://github.com/Soontao/gulp-ui5-eager-preload/commit/f1e4526))
+
+
+
 ### [1.12.20](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.12.19...v1.12.20) (2019-07-26)
 
 
