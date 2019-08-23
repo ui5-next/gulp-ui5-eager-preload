@@ -79,7 +79,7 @@ module.exports = function({
         concat(...allDeps).forEach(d => {
           if (d.startsWith("sap")) {
             distinctDeps.add(d);
-          } else if (!d.startsWith(namepath)) {
+          } else if (!d.startsWith(namepath) && !d.startsWith("./") && !d.startsWith("../")) {
             thirdpartyLibs.push(d);
           }
         });
