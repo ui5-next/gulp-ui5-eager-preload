@@ -38,7 +38,7 @@ var rollupTmpConfig = (mAsbPath, mName, minify = false) => {
       exports: 'named'
     },
     onwarn: function(message) {
-      log.warn(`[bundle-thirdparty][${mName}]`, colors.yellow(message));
+      log.warn(`[bundle][${mName}]`, colors.yellow(message));
     },
     plugins
   };
