@@ -17,6 +17,8 @@ var {
   persistCache
 } = require("./ui5");
 
+var path = require("path");
+
 var { bundleModule } = require("./thirdparty");
 
 var defaultResourceRoot = "https://openui5.hana.ondemand.com/resources/";
@@ -77,6 +79,7 @@ module.exports = function({
           );
         });
         concat(...allDeps).forEach(d => {
+          d = path.normalize(d).replace(path.normalize(sourceDir), namepath).replace(/\\/g, "/");
           if (d.startsWith("sap")) {
             distinctDeps.add(d);
           } else if (!d.startsWith(namepath) && !d.startsWith("./") && !d.startsWith("../")) {
@@ -152,7 +155,8 @@ module.exports = function({
 
       var resources = await fetchAllResource(additionalResources, ui5ResourceRoot);
 
-      modules = Object.assign(modules, thirdPartyDepsCode);
+      // not assign to 'preload.js' file, processed in 'Component-preload.js'
+      // modules = Object.assign(modules, thirdPartyDepsCode);
 
       this.push(
         new GulpFile({

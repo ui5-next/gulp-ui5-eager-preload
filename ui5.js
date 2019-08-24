@@ -51,7 +51,7 @@ var readURLFromCache = async url => {
   if (!urlContent) {
     var response = await fetch(url, { timeout: FIVE_MINUTES });
     if (response.status == 404) {
-      log.error('gulp-ui5-eager-preload', colors.red(`Can not found: ${url}`));
+      log.warn('gulp-ui5-eager-preload', colors.yellow(`Can not found: ${url}`));
     }
     urlContent = await response.text();
     GlobalResourceCache[hash] = urlContent;
