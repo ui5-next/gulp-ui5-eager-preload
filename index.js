@@ -155,8 +155,7 @@ module.exports = function({
 
       var resources = await fetchAllResource(additionalResources, ui5ResourceRoot);
 
-      // not assign to 'preload.js' file, processed in 'Component-preload.js'
-      // modules = Object.assign(modules, thirdPartyDepsCode);
+      modules = Object.assign(modules, thirdPartyDepsCode);
 
       this.push(
         new GulpFile({
