@@ -37,7 +37,8 @@ module.exports = function({
   production = false,
   bootScript,
   bootScriptPath,
-  offline = false
+  offline = false,
+  library = false
 }) {
   if (!ui5ResourceRoot.endsWith("/")) {
     ui5ResourceRoot = `${ui5ResourceRoot}/`;
@@ -235,29 +236,33 @@ module.exports = function({
       cssLinks = libs.map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`);
     }
 
+    if(!library){
 
-    var indexHtml = generateIndexHtmlContent({
-      resourceRoot: ui5ResourceRoot,
-      projectNameSpace: projectNameSpace,
-      theme: theme,
-      title: title,
-      bootScript,
-      bootScriptPath,
-      preload,
-      offline,
-      inlineCssLink: cssLinks,
-      resourceRoots: {
-        [projectNameSpace]: ".",
-        ...thirdPartyDepsObject
-      }
-    });
+      var indexHtml = generateIndexHtmlContent({
+        resourceRoot: ui5ResourceRoot,
+        projectNameSpace: projectNameSpace,
+        theme: theme,
+        title: title,
+        bootScript,
+        bootScriptPath,
+        preload,
+        offline,
+        inlineCssLink: cssLinks,
+        resourceRoots: {
+          [projectNameSpace]: ".",
+          ...thirdPartyDepsObject
+        }
+      });
 
-    this.push(
-      new GulpFile({
-        path: outputFilePath || "index.html",
-        contents: Buffer.from(indexHtml)
-      })
-    );
+      this.push(
+        new GulpFile({
+          path: outputFilePath || "index.html",
+          contents: Buffer.from(indexHtml)
+        })
+      );
+
+    }
+
 
     persistCache.Persist();
 
