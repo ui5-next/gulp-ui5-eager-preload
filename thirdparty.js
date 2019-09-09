@@ -10,7 +10,7 @@ var rollupReplace = require("rollup-plugin-replace");
 
 var libInMemoryCache = {};
 
-var formatUI5Module = (umdCode, mName) => `sap.ui.define(function(){
+var formatUI5Module = (umdCode, mName) => `sap.ui.define("${mName}", function(){
   ${umdCode}
   return window["${mName}"] || this["${mName}"]
 })

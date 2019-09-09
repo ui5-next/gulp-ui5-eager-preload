@@ -9,7 +9,7 @@ module.exports = function(options) {
 
   options = options || {};
   options.isLibrary = !!options.isLibrary;
-  options.fileName = options.fileName || (options.isLibrary ? 'library-preload.json' : 'Component-preload.js');
+  options.fileName = options.fileName || (options.isLibrary ? 'library-preload.js' : 'Component-preload.js');
 
   if (typeof options.base !== 'string') {
     throw new PluginError('gulp-ui5-preload', '`base` parameter required');
@@ -57,26 +57,28 @@ module.exports = function(options) {
 
     // remove logger
 
+    var contents = "";
+
     var template = 'jQuery.sap.registerPreloadedModules(JSON_CONTENT);';
     var suffix = '.Component-preload';
     if (options.isLibrary) {
-      template = 'JSON_CONTENT';
-      suffix = '.library-preload';
+
+      contents = Object.entries(preloadModules).map(([key, value]) => value.replace(/sap\.ui\.define/g, "sap.ui.predefine")).join("\r\n");
+
+    } else {
+
+      contents = template.replace('JSON_CONTENT', () => JSON.stringify(
+        {
+          name: options.namespace + suffix,
+          version: '2.0',
+          modules: preloadModules
+        },
+        null,
+        '\t'
+      ));
     }
 
-    var jsonContent = JSON.stringify(
-      {
-        name: options.namespace + suffix,
-        version: '2.0',
-        modules: preloadModules
-      },
-      null,
-      '\t'
-    );
 
-    var contents = template.replace('JSON_CONTENT', function() {
-      return jsonContent;
-    });
 
     var preloadFile = firstFile.clone({ contents: false });
     preloadFile.contents = Buffer.from(contents, "UTF-8");
