@@ -1,16 +1,16 @@
 var { reduce, forEach, isEmpty } = require("lodash");
 var { dirname, join: pathJoin } = require("path");
 var { warn } = require("console");
-var log = require('fancy-log');
-var colors = require('ansi-colors');
+var log = require("fancy-log");
+var colors = require("ansi-colors");
 
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
-var parseString = require('xml2js').parseString;
+var parseString = require("xml2js").parseString;
 var crypto = require("crypto");
 var { UI5Cache } = require("./cache");
 
-var { eachDeep } = require('deepdash')(require('lodash'));
+var { eachDeep } = require("deepdash")(require("lodash"));
 
 var persistCache = UI5Cache.Load();
 
@@ -27,7 +27,6 @@ var md5 = s => {
 };
 
 var readBinary = async url => {
-
   var GlobalResourceCache = persistCache.get("GlobalResourceCache") || {};
   var hash = md5(url);
   var base64Content = GlobalResourceCache[hash];
@@ -41,7 +40,6 @@ var readBinary = async url => {
   } else {
     return Buffer.from(base64Content, BASE64);
   }
-
 };
 
 var readURLFromCache = async url => {
@@ -51,7 +49,7 @@ var readURLFromCache = async url => {
   if (!urlContent) {
     var response = await fetch(url, { timeout: FIVE_MINUTES });
     if (response.status == 404) {
-      log.warn('[preload]', colors.yellow(`Can not fetch module: ${url}`));
+      log.warn("[preload]", colors.yellow(`Can not fetch module: ${url}`));
     }
     urlContent = await response.text();
     GlobalResourceCache[hash] = urlContent;
@@ -90,6 +88,30 @@ var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
 };
 
 /**
+ * find Ui5 Module Name
+ * @param {string} source string
+ */
+var findUi5ModuleName = source => {
+  var mName = "";
+
+  var mNameReg = /sap\.ui\.define\("(.*?)".*?\)/g;
+
+  var group;
+
+  while ((group = mNameReg.exec(source)) != undefined) {
+    try {
+      mName = group[1];
+    } catch (error) {
+      log.error(
+        `can not found sap.ui.require([...]) with ${group[1]} in ${sourceName}`
+      );
+    }
+  }
+
+  return mName;
+};
+
+/**
  * find modules in sap.ui.define pattern
  */
 var findAllUi5StandardModules = (source, sourceName) => {
@@ -105,7 +127,9 @@ var findAllUi5StandardModules = (source, sourceName) => {
     try {
       deps = deps.concat(JSON.parse(group[1].replace(/'/g, '"')));
     } catch (error) {
-      log.error(`can not parse sap.ui.require([...]) with ${group[1]} in ${sourceName}`);
+      log.error(
+        `can not parse sap.ui.require([...]) with ${group[1]} in ${sourceName}`
+      );
     }
   }
 
@@ -119,7 +143,11 @@ var findAllUi5StandardModules = (source, sourceName) => {
         deps = deps.concat(group[1]);
       }
     } catch (error) {
-      log.error(`can not parse sap.ui.requireSync([...]) with ${group[1]} in ${sourceName}`);
+      log.error(
+        `can not parse sap.ui.requireSync([...]) with ${
+          group[1]
+        } in ${sourceName}`
+      );
     }
   }
 
@@ -129,7 +157,9 @@ var findAllUi5StandardModules = (source, sourceName) => {
     try {
       deps = deps.concat(group[1]);
     } catch (error) {
-      log.error(`can not parse sap.ui.require("...") with ${group[1]} in ${sourceName}`);
+      log.error(
+        `can not parse sap.ui.require("...") with ${group[1]} in ${sourceName}`
+      );
     }
   }
 
@@ -158,9 +188,12 @@ var findAllUi5ViewModules = async(source, sourceName) => {
         if (err) {
           reject(err);
         } else {
-          eachDeep(result, (value) => {
+          eachDeep(result, value => {
             if (value && value.$ns) {
-              var mName = `${value.$ns.uri}.${value.$ns.local}`.replace(/\./g, "/");
+              var mName = `${value.$ns.uri}.${value.$ns.local}`.replace(
+                /\./g,
+                "/"
+              );
               ds.add(mName);
             }
           });
@@ -201,7 +234,7 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
   // set entry
   moduleDeps["entry"] = sModuleNames;
 
-  for (; ;) {
+  for (;;) {
     var needToBeLoad = new Set();
 
     forEach(moduleDeps, dep => {
@@ -241,7 +274,10 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
     }
   }
 
-  persistCache.set("GlobalModuleCache", Object.assign(globalModuleCache, modules));
+  persistCache.set(
+    "GlobalModuleCache",
+    Object.assign(globalModuleCache, modules)
+  );
 
   return modules;
 };
@@ -306,7 +342,6 @@ var TmpUglifyNameCache = {};
  * @param {*} resources list
  */
 var generatePreloadFile = (cache = {}, resources = {}) => {
-
   var modules = reduce(
     cache,
     (pre, moduleSource, moduleName) => {
@@ -321,7 +356,8 @@ var generatePreloadFile = (cache = {}, resources = {}) => {
         TmpUglifyNameCache[sourceHash] = compressed;
       }
       return pre;
-    }, {}
+    },
+    {}
   );
 
   forEach(resources, (content, resourceName) => {
@@ -339,6 +375,7 @@ module.exports = {
   isUI5StandardModule,
   findAllImportModules,
   findAllUi5StandardModules,
+  findUi5ModuleName,
   resolveUI5Module,
   findAllLibraries,
   readURLFromCache,

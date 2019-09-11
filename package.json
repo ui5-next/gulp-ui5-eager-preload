@@ -22,6 +22,7 @@
     "deepdash": "^1.9.5",
     "fancy-log": "^1.3.3",
     "glob": "^7.1.3",
+    "graphlib": "^2.1.7",
     "lodash": "^4.17.11",
     "node-fetch": "^2.3.0",
     "plugin-error": "^1.0.1",
