@@ -11,7 +11,10 @@ var { Graph } = require("graphlib");
 const formatLibraryPreloadFile = modules => {
   const oGraph = new Graph({ directed: true });
 
-  oGraph.setNodes(Object.keys(modules));
+  Object.entries(modules).forEach(([, mSrc]) => {
+    const mName = findUi5ModuleName(mSrc);
+    oGraph.setNode(mName, mSrc);
+  });
 
   Object.entries(modules).forEach(([, mSrc]) => {
     const mName = findUi5ModuleName(mSrc);
@@ -25,24 +28,26 @@ const formatLibraryPreloadFile = modules => {
 
   var rt = [];
 
-  for (;;) {
+  for (; ;) {
 
     const aSort = sortBy(
-      oGraph.nodes.map(sNode => ({
-        iDepCount: oGraph.nodeEdges(sNode).length,
+      oGraph.nodes().map(sNode => ({
+        iDepCount: oGraph
+          .nodeEdges(sNode)
+          .filter(e => e.v == sNode).length,
         sNode
       })),
       o => o.iDepCount
     );
 
     aSort
-      .filter(o => o.iDepCount == 0)
+      .filter(o => o.iDepCount <= 1)
       .forEach(oNode => {
-        rt = rt.concat(modules[oNode.sNode]);
+        rt = rt.concat(oGraph.node(oNode.sNode));
         oGraph.removeNode(oNode.sNode);
       });
 
-    if (oGraph.nodeCount == 0) {
+    if (oGraph.nodeCount() == 0) {
       break;
     }
 

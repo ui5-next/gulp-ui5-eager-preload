@@ -114,7 +114,7 @@ var findUi5ModuleName = source => {
 /**
  * find modules in sap.ui.define pattern
  */
-var findAllUi5StandardModules = (source, sourceName) => {
+var findAllUi5StandardModules = (source, sourceName = "") => {
   var base = dirname(sourceName);
 
   var deps = [];
