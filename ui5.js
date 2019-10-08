@@ -88,7 +88,8 @@ var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
 };
 
 /**
- * find Ui5 Module Name
+ * find Ui5 Module Name from source code
+ *
  * @param {string} source string
  */
 var findUi5ModuleName = source => {
@@ -103,7 +104,7 @@ var findUi5ModuleName = source => {
       mName = group[1];
     } catch (error) {
       log.error(
-        `can not found sap.ui.require([...]) with ${group[1]} in ${sourceName}`
+        `can not found sap.ui.define([...]) with ${group[1]} in ${source}`
       );
     }
   }
