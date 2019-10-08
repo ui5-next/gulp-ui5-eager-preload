@@ -66,7 +66,7 @@ module.exports = function({
 
     // preload js module
     var preloadPromise = new Promise((resolve, reject) => {
-      glob(`${sourceDir}/**/*.js`, async(err, files) => {
+      glob(`${sourceDir}/**/*.?(js|jsx|ts|tsx|mjs)`, async(err, files) => {
         if (err) {
           reject(err);
           return;
