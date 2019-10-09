@@ -5,8 +5,25 @@ var { existsSync, readFileSync } = require("fs");
 var findNodeModules = require('find-node-modules');
 var log = require("fancy-log");
 var colors = require("ansi-colors");
-var jsWalk = require("acorn-walk");
-var jsParser = require("acorn");
+
+var jsParser = {
+  parse: source => {
+    return require("recast").parse(source, {
+      parser: {
+        parse(source) {
+          return require("@babel/parser").parse(source, {
+            plugins: ["typescript", "jsx", "classProperties"],
+            sourceType: "module"
+          });
+        }
+      }
+    });
+  }
+};
+
+var traverseSource = (source, options) => {
+  return require("@babel/traverse").default(jsParser.parse(source), options);
+};
 
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
@@ -185,8 +202,8 @@ var findAllUi5StandardModules = (source, sourceName = "") => {
   var deps = [];
   var addDependency = dependency => { deps = deps.concat(dependency); };
 
-  jsWalk.simple(jsParser.parse(source), {
-    CallExpression(node) {
+  traverseSource(source, {
+    CallExpression({ node }) {
       const nodeGet = path => get(node, path);
       const callArguments = nodeGet("arguments");
       if (callArguments) {// with arguments)
@@ -211,7 +228,7 @@ var findAllUi5StandardModules = (source, sourceName = "") => {
           nodeGet("callee.property.name") == "require"
         ) {
           // var JSONModel = sap.ui.require("sap/ui/model/json/JSONModel");
-          if (callArguments.length == 1 && callArguments[0].type == "Literal") {
+          if (callArguments.length == 1 && (callArguments[0].type == "Literal" || callArguments[0].type == "StringLiteral")) {
             addDependency(callArguments[0].value);
           } else {
             // sap.ui.require(['sap/ui/model/json/JSONModel', 'sap/ui/core/UIComponent'], function(JSONModel,UIComponent) {});
@@ -229,7 +246,7 @@ var findAllUi5StandardModules = (source, sourceName = "") => {
           nodeGet("callee.property.name") == "requireSync"
         ) {
           // var JSONModel = sap.ui.requireSync("sap/ui/model/json/JSONModel");
-          if (callArguments.length == 1 && callArguments[0].type == "Literal") {
+          if (callArguments.length == 1 && (callArguments[0].type == "Literal" || callArguments[0].type == "StringLiteral")) {
             addDependency(callArguments[0].value);
           } else {
             // sap.ui.requireSync(['sap/ui/model/json/JSONModel', 'sap/ui/core/UIComponent'], function(JSONModel,UIComponent) {});
@@ -245,7 +262,7 @@ var findAllUi5StandardModules = (source, sourceName = "") => {
           nodeGet("callee.object.property.name") == "ui" &&
           nodeGet("callee.property.name") == "require"
         ) {
-          if (callArguments.length == 1 && callArguments[0].type == "Literal") {
+          if (callArguments.length == 1 && (callArguments[0].type == "Literal" || callArguments[0].type == "StringLiteral")) {
             addDependency(callArguments[0].value);
           }
         }
@@ -257,7 +274,7 @@ var findAllUi5StandardModules = (source, sourceName = "") => {
           nodeGet("callee.object.property.name") == "ui" &&
           nodeGet("callee.property.name") == "lazyRequire"
         ) {
-          if (callArguments.length == 1 && callArguments[0].type == "Literal") {
+          if (callArguments.length == 1 && (callArguments[0].type == "Literal" || callArguments[0].type == "StringLiteral")) {
             addDependency(callArguments[0].value);
           } else {
             var e4 = find(nodeGet("arguments"), arg => arg.type == "ArrayExpression");

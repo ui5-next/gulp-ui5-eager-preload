@@ -46,5 +46,9 @@ const testGlobalDependency = [
 ];
 
 test('should find sap.ui.require modules', () => {
-  expect(findAllUi5StandardModules(readFileSync("./test_resources/sap.ui.Global.js"), "sap/ui/Global")).toStrictEqual(testGlobalDependency);
+  expect(findAllUi5StandardModules(readFileSync("./test_resources/sap.ui.Global.js"), "sap/ui/Global").sort()).toStrictEqual(testGlobalDependency.sort());
+});
+
+test('should find tsx files modules (empty but without errors)', () => {
+  expect(findAllUi5StandardModules(readFileSync("./test_resources/ProductRating.tsx"), "test/ProductRating").sort()).toStrictEqual([].sort());
 });
