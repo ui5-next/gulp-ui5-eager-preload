@@ -99,7 +99,7 @@ var formatNodeModulesPath = mName => {
   var nmPath = findNodeModules({ relative: false });
   var libraryName = getSourceLibraryName(mName);
   if (nmPath && libraryName) {
-    return pathJoin(nmPath[0], "@openui5", libraryName, "src", `${mName}.js`);
+    return pathJoin(nmPath[0], "@openui5", libraryName.replace(/\//g, "."), "src", `${mName}.js`);
   } else {
     return "";
   }
