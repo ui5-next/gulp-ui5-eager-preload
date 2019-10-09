@@ -6,8 +6,12 @@
     "editor.wordWrap": "on",
     "files.eol": "\n",
     "eslint.autoFixOnSave": true,
+    "files.associations": {
+        "**/test_resources/*.js": "plaintext"
+    },
     "cSpell.words": [
         "Builtins",
+        "Enablement",
         "datajs",
         "devtools",
         "messagebundle",

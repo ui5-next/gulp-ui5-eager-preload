@@ -8,6 +8,7 @@
   },
   "scripts": {
     "clean": "rm -rf lib",
+    "test": "jest",
     "release": "standard-version --commit-all --no-verify && git push --follow-tags origin master"
   },
   "devDependencies": {
@@ -15,9 +16,13 @@
     "@commitlint/config-conventional": "^8",
     "eslint": "^5.16.0",
     "husky": "^2.3.0",
+    "jest": "^24.9.0",
     "standard-version": "^6.0.1"
   },
   "dependencies": {
+    "acorn": "^7.1.0",
+    "acorn-jsx": "^5.0.2",
+    "acorn-walk": "^7.0.0",
     "ansi-colors": "^3.2.4",
     "deepdash": "^1.9.5",
     "fancy-log": "^1.3.3",

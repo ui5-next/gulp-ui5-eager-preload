@@ -1,10 +1,12 @@
-var { reduce, forEach, isEmpty } = require("lodash");
+var { reduce, forEach, isEmpty, get, find, map } = require("lodash");
 var { dirname, join: pathJoin } = require("path");
 var { warn } = require("console");
 var { existsSync, readFileSync } = require("fs");
 var findNodeModules = require('find-node-modules');
 var log = require("fancy-log");
 var colors = require("ansi-colors");
+var jsWalk = require("acorn-walk");
+var jsParser = require("acorn");
 
 var fetch = require("node-fetch");
 var UglifyJS = require("uglify-js");
@@ -180,68 +182,102 @@ var findUi5ModuleName = source => {
  */
 var findAllUi5StandardModules = (source, sourceName = "") => {
   var base = dirname(sourceName);
-
   var deps = [];
+  var addDependency = dependency => { deps = deps.concat(dependency); };
 
-  var reqMultiReg = /sap\.ui\.require\((\[".*?\"].*?)/g;
+  jsWalk.simple(jsParser.parse(source), {
+    CallExpression(node) {
+      const nodeGet = path => get(node, path);
+      const callArguments = nodeGet("arguments");
+      if (callArguments) {// with arguments)
 
-  var group;
+        // sap.ui.define
+        if (
+          nodeGet("callee.object.object.name") == "sap" &&
+          nodeGet("callee.object.property.name") == "ui" &&
+          nodeGet("callee.property.name") == "define"
+        ) {
+          // find []
+          var arrayExpression = find(nodeGet("arguments"), arg => arg.type == "ArrayExpression");
+          if (arrayExpression && arrayExpression.elements) {
+            addDependency(map(arrayExpression.elements, ele => ele.value));
+          }
+        }
 
-  while ((group = reqMultiReg.exec(source)) != undefined) {
-    try {
-      deps = deps.concat(JSON.parse(group[1].replace(/'/g, '"')));
-    } catch (error) {
-      log.error(
-        `can not parse sap.ui.require([...]) with ${group[1]} in ${sourceName}`
-      );
-    }
-  }
+        // sap.ui.require
+        if (
+          nodeGet("callee.object.object.name") == "sap" &&
+          nodeGet("callee.object.property.name") == "ui" &&
+          nodeGet("callee.property.name") == "require"
+        ) {
+          // var JSONModel = sap.ui.require("sap/ui/model/json/JSONModel");
+          if (callArguments.length == 1 && callArguments[0].type == "Literal") {
+            addDependency(callArguments[0].value);
+          } else {
+            // sap.ui.require(['sap/ui/model/json/JSONModel', 'sap/ui/core/UIComponent'], function(JSONModel,UIComponent) {});
+            var e2 = find(nodeGet("arguments"), arg => arg.type == "ArrayExpression");
+            if (e2 && e2.elements) {
+              addDependency(map(e2.elements, ele => ele.value));
+            }
+          }
+        }
 
-  var reqSyncReg = /sap\.ui\.requireSync\("(.*?)"\)/g;
+        // sap.ui.requireSync
+        if (
+          nodeGet("callee.object.object.name") == "sap" &&
+          nodeGet("callee.object.property.name") == "ui" &&
+          nodeGet("callee.property.name") == "requireSync"
+        ) {
+          // var JSONModel = sap.ui.requireSync("sap/ui/model/json/JSONModel");
+          if (callArguments.length == 1 && callArguments[0].type == "Literal") {
+            addDependency(callArguments[0].value);
+          } else {
+            // sap.ui.requireSync(['sap/ui/model/json/JSONModel', 'sap/ui/core/UIComponent'], function(JSONModel,UIComponent) {});
+            var e3 = find(nodeGet("arguments"), arg => arg.type == "ArrayExpression");
+            if (e3 && e3.elements) {
+              addDependency(map(e3.elements, ele => ele.value));
+            }
+          }
+        }
+        // jQuery.sap.require
+        if (
+          nodeGet("callee.object.object.name") == "jQuery" &&
+          nodeGet("callee.object.property.name") == "ui" &&
+          nodeGet("callee.property.name") == "require"
+        ) {
+          if (callArguments.length == 1 && callArguments[0].type == "Literal") {
+            addDependency(callArguments[0].value);
+          }
+        }
 
-  while ((group = reqSyncReg.exec(source)) != undefined) {
-    try {
-      const v = group[1];
-      // some require sync is formatted by string
-      if (v.indexOf("+") < 0) {
-        deps = deps.concat(group[1]);
+
+        // sap.ui.lazyRequire
+        if (
+          nodeGet("callee.object.object.name") == "sap" &&
+          nodeGet("callee.object.property.name") == "ui" &&
+          nodeGet("callee.property.name") == "lazyRequire"
+        ) {
+          if (callArguments.length == 1 && callArguments[0].type == "Literal") {
+            addDependency(callArguments[0].value);
+          } else {
+            var e4 = find(nodeGet("arguments"), arg => arg.type == "ArrayExpression");
+            if (e4 && e4.elements) {
+              addDependency(map(e4.elements, ele => ele.value));
+            }
+          }
+        }
       }
-    } catch (error) {
-      log.error(
-        `can not parse sap.ui.requireSync([...]) with ${
-          group[1]
-        } in ${sourceName}`
-      );
     }
-  }
+  });
 
-  var reqSingleReg = /sap\.ui\.require\("(.*?)"\)/g;
-
-  while ((group = reqSingleReg.exec(source)) != undefined) {
-    try {
-      deps = deps.concat(group[1]);
-    } catch (error) {
-      log.error(
-        `can not parse sap.ui.require("...") with ${group[1]} in ${sourceName}`
-      );
-    }
-  }
-
-  var defGroups = /sap\.ui\.define\(.*?(\[.*?\])/g.exec(source);
-
-  if (defGroups && defGroups.length > 0) {
-    var sArray = defGroups[1].replace(/'/g, '"');
-    deps = deps.concat(JSON.parse(sArray));
-  }
-
-  return deps.map(d => {
+  return map(deps, d => {
     if (d.startsWith("./") || d.startsWith("../")) {
       d = pathJoin(base, d);
-      // replace \ to / after join
-      d = d.replace(/\\/g, "/");
+      d = d.replace(/\\/g, "/");// replace \ to / after join
     }
     return d;
   });
+
 };
 
 var findAllUi5ViewModules = async(source, sourceName) => {
