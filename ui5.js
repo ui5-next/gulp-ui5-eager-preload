@@ -1,6 +1,8 @@
 var { reduce, forEach, isEmpty } = require("lodash");
 var { dirname, join: pathJoin } = require("path");
 var { warn } = require("console");
+var { existsSync, readFileSync } = require("fs");
+var findNodeModules = require('find-node-modules');
 var log = require("fancy-log");
 var colors = require("ansi-colors");
 
@@ -17,6 +19,27 @@ var persistCache = UI5Cache.Load();
 var FIVE_MINUTES = 5 * 60 * 1000;
 
 var BASE64 = "base64";
+
+/**
+ * UI5 Library List
+ */
+var UI5Libraries = [
+  "sap/ui/core",
+  "sap/ui/layout",
+  "sap/ui/unified",
+  "sap/ui/table",
+  "sap/ui/commons",
+  "sap/ui/viz",
+  "sap/ui/suite",
+  "sap/ui/richtexteditor",
+  "sap/ui/comp",
+  "sap/m",
+  "sap/f",
+  "sap/gantt",
+  "sap/ushell",
+  "sap/tnt",
+  "sap/uxap"
+];
 
 /**
  * md5 hash
@@ -58,14 +81,54 @@ var readURLFromCache = async url => {
   return urlContent;
 };
 
-var fetchSource = async(mName, resourceRoot = "") => {
-  var url = `${resourceRoot}${mName}.js`;
-  try {
-    return await readURLFromCache(url);
-  } catch (error) {
-    warn(`fetch ${mName} failed ${error}`);
-    throw error;
+/**
+ * get the library name of a module
+ * @param {string} mName
+ */
+var getSourceLibraryName = mName => {
+  var rt;
+  forEach(UI5Libraries, libraryName => {
+    if (mName.startsWith(libraryName)) {
+      rt = libraryName;
+    }
+  });
+  return rt;
+};
+
+var formatNodeModulesPath = mName => {
+  var nmPath = findNodeModules({ relative: false });
+  var libraryName = getSourceLibraryName(mName);
+  if (nmPath && libraryName) {
+    return pathJoin(nmPath[0], "@openui5", libraryName, "src", `${mName}.js`);
+  } else {
+    return "";
   }
+};
+
+/**
+ * read file from path
+ *
+ * @param {string} u path
+ */
+var readFile = u => readFileSync(u, { encoding: "UTF-8" });
+
+var fetchSource = async(mName, resourceRoot = "") => {
+
+  var url = formatNodeModulesPath(mName);
+
+  if (existsSync(url)) {
+    // prefer read file from local node modules
+    return readFile(url);
+  } else {
+    url = `${resourceRoot}${mName}.js`;
+    try {
+      return await readURLFromCache(url);
+    } catch (error) {
+      warn(`fetch ${mName} failed ${error}`);
+      throw error;
+    }
+  }
+
 };
 
 var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
@@ -235,7 +298,7 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
   // set entry
   moduleDeps["entry"] = sModuleNames;
 
-  for (;;) {
+  for (; ;) {
     var needToBeLoad = new Set();
 
     forEach(moduleDeps, dep => {
@@ -283,26 +346,7 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
   return modules;
 };
 
-/**
- * UI5 Library List
- */
-var UI5Libraries = [
-  "sap/ui/core",
-  "sap/ui/layout",
-  "sap/ui/unified",
-  "sap/ui/table",
-  "sap/ui/commons",
-  "sap/ui/viz",
-  "sap/ui/suite",
-  "sap/ui/richtexteditor",
-  "sap/ui/comp",
-  "sap/m",
-  "sap/f",
-  "sap/gantt",
-  "sap/ushell",
-  "sap/tnt",
-  "sap/uxap"
-];
+
 
 /**
  * find out all ui5 libraries
@@ -321,6 +365,7 @@ var findAllLibraries = (modules = []) => {
   });
   return Array.from(rt);
 };
+
 
 var isUI5StandardModule = sModuleName => {
   var rt = false;
