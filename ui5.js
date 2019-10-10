@@ -96,7 +96,8 @@ var isUi5CoreCoreJs = (mName = "") => {
   return mName && (
     mName.startsWith("jquery.") ||
     mName.startsWith("sap-ui-") ||
-    mName.startsWith("ui5loader")
+    mName.startsWith("ui5loader") ||
+    mName.startsWith("sap/ui/support/jQuery")
   );
 };
 
@@ -122,6 +123,14 @@ var getSourceLibraryName = mName => {
  * @param {string} lName library name
  */
 var normalizeLibraryName = (lName = "") => lName.replace(/\//g, ".");
+
+var normalizeModuleName = (mName = "") => {
+  if (isUi5CoreCoreJs(mName)) {
+    return mName;
+  } else {
+    return mName.replace(/\\/g, "/").replace(/\./g, "/");
+  }
+};
 
 var formatNodeModulesPath = mName => {
   var nmPath = findNodeModules({ relative: false });
@@ -216,7 +225,7 @@ var findUi5ModuleName = source => {
 var findAllUi5StandardModules = (source, sourceName = "") => {
   var base = dirname(sourceName);
   var deps = [];
-  var addDependency = dependency => { deps = deps.concat(dependency); };
+  var addDependency = dependency => { if (dependency) {deps = deps.concat(dependency);} };
 
   traverseSource(source, {
     CallExpression({ node }) {
@@ -308,7 +317,7 @@ var findAllUi5StandardModules = (source, sourceName = "") => {
       d = pathJoin(base, d);
       d = d.replace(/\\/g, "/");// replace \ to / after join
     }
-    return d;
+    return normalizeModuleName(d);
   });
 
 };
