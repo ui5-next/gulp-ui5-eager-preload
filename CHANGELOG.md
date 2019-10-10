@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.18.0](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.17.3...v1.18.0) (2019-10-10)
+
+
+### Features
+
+* refactor module dependency anasys ([8dabedd](https://github.com/Soontao/gulp-ui5-eager-preload/commit/8dabedd))
+
+
+
 ### [1.17.3](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.17.2...v1.17.3) (2019-10-10)
 
 
