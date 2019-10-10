@@ -1,4 +1,4 @@
-var { findAllUi5StandardModules } = require("./ui5");
+var { findAllUi5StandardModules, findUi5ModuleName, findAllImportModules } = require("./ui5");
 var { readFileSync } = require("fs");
 
 const testDialogDependency = [
@@ -51,4 +51,28 @@ test('should find sap.ui.require modules', () => {
 
 test('should find tsx files modules (empty but without errors)', () => {
   expect(findAllUi5StandardModules(readFileSync("./test_resources/ProductRating.tsx"), "test/ProductRating").sort()).toStrictEqual([].sort());
+});
+
+test('should find ui5 module name', () => {
+  expect(
+    findUi5ModuleName(
+      readFileSync("./test_resources/ui5.wt.ts.model.formatter.js")
+    )
+  ).toBe("ui5/wt/ts/model/formatter");
+});
+
+test("should find es6 imported sources", () => {
+  const expected = [ 'sap/ui/core/UIComponent',
+    'sap/ui/model/json/JSONModel',
+    'sap/ui/Device',
+    'ui5/wt/ts/fragments/HelloDialog',
+    'ui5/wt/ts/manifest',
+    'sap/m/Dialog',
+    'sap/ui/model/BindingMode',
+    'sap/ui/core/mvc/View',
+    'sap/ui/core/mvc/Controller'
+  ] .sort();
+  expect(
+    findAllImportModules(readFileSync("./test_resources/Component.ts"), "ui5/wt/ts/Component").sort()
+  ).toStrictEqual(expected);
 });

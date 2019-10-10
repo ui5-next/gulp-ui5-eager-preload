@@ -20,7 +20,7 @@ class UI5Cache extends Map {
 /**
  * load cache
  */
-UI5Cache.Load = () => {
+UI5Cache.load = () => {
   try {
     if (existsSync(cachePath)) {
       var binCache = readFileSync(cachePath, { encoding: "UTF-8" });

@@ -25,7 +25,7 @@ var { UI5Cache } = require("./cache");
 
 var { eachDeep } = require("deepdash")(require("lodash"));
 
-var persistCache = UI5Cache.Load();
+var persistCache = UI5Cache.load();
 
 var FIVE_MINUTES = 5 * 60 * 1000;
 
@@ -92,12 +92,23 @@ var readURLFromCache = async url => {
   return urlContent;
 };
 
+var isUi5CoreCoreJs = (mName = "") => {
+  return mName && (
+    mName.startsWith("jquery.") ||
+    mName.startsWith("sap-ui-") ||
+    mName.startsWith("ui5loader")
+  );
+};
+
 /**
  * get the library name of a module
  * @param {string} mName
  */
 var getSourceLibraryName = mName => {
   var rt;
+  if (isUi5CoreCoreJs(mName)) {
+    return "sap.ui.core";
+  }
   forEach(UI5Libraries, libraryName => {
     if (mName.startsWith(libraryName)) {
       rt = libraryName;
@@ -106,11 +117,17 @@ var getSourceLibraryName = mName => {
   return rt;
 };
 
+/**
+ * normalize library name sap/ui/core -> sap.ui.core
+ * @param {string} lName library name
+ */
+var normalizeLibraryName = (lName = "") => lName.replace(/\//g, ".");
+
 var formatNodeModulesPath = mName => {
   var nmPath = findNodeModules({ relative: false });
   var libraryName = getSourceLibraryName(mName);
   if (nmPath && libraryName) {
-    return pathJoin(nmPath[0], "@openui5", libraryName.replace(/\//g, "."), "src", `${mName}.js`);
+    return pathJoin(nmPath[0], "@openui5", normalizeLibraryName(libraryName), "src", `${mName}.js`);
   } else {
     return "";
   }
@@ -169,19 +186,26 @@ var fetchAllResource = async(resourceList = [], resourceRoot = "") => {
 var findUi5ModuleName = source => {
   var mName = "";
 
-  var mNameReg = /sap\.ui\.define\("(.*?)".*?\)/g;
+  traverseSource(source, {
+    CallExpression({ node }) {
+      const nodeGet = path => get(node, path);
+      const callArguments = nodeGet("arguments");
+      if (callArguments) {
+        // with arguments
 
-  var group;
-
-  while ((group = mNameReg.exec(source)) != undefined) {
-    try {
-      mName = group[1];
-    } catch (error) {
-      log.error(
-        `can not found sap.ui.define([...]) with ${group[1]} in ${source}`
-      );
+        // sap.ui.define
+        if (
+          nodeGet("callee.object.object.name") == "sap" &&
+          nodeGet("callee.object.property.name") == "ui" &&
+          (nodeGet("callee.property.name") == "define" || nodeGet("callee.property.name") == "predefine")
+        ) {
+          // find name
+          var literal = find(callArguments, arg => (arg.type == "Literal" || arg.type == "StringLiteral"));
+          mName = literal.value;
+        }
+      }
     }
-  }
+  });
 
   return mName;
 };
@@ -204,7 +228,7 @@ var findAllUi5StandardModules = (source, sourceName = "") => {
         if (
           nodeGet("callee.object.object.name") == "sap" &&
           nodeGet("callee.object.property.name") == "ui" &&
-          nodeGet("callee.property.name") == "define"
+          (nodeGet("callee.property.name") == "define" || nodeGet("callee.property.name") == "predefine")
         ) {
           // find []
           var arrayExpression = find(nodeGet("arguments"), arg => arg.type == "ArrayExpression");
@@ -319,16 +343,25 @@ var findAllUi5ViewModules = async(source, sourceName) => {
 var findAllImportModules = (source, sourceName = "") => {
   var base = dirname(sourceName);
   var rt = [];
-  var matchedTexts = source.match(/import.*?["|'](.*?)["|']/g);
-  if (matchedTexts) {
-    rt = matchedTexts.map(t => {
-      var importName = /import.*?["|'](.*?)["|']/g.exec(t)[1];
-      if (importName.startsWith("./")) {
-        importName = pathJoin(base, importName).replace(/\\/g, "/");
+  var addImportedModules = (m) => {
+    if (m.startsWith("./") || m.startsWith("../")) {
+      // relative module
+      rt = rt.concat(pathJoin(base, m).replace(/\\/g, "/"));
+    } else {
+      rt = rt.concat(m);
+    }
+  };
+
+  traverseSource(source, {
+    ImportDeclaration: ({ node }) => {
+      const nodeGet = path => get(node, path);
+      const importedModuleName = nodeGet("source.value");
+      if (importedModuleName) {
+        addImportedModules(importedModuleName);
       }
-      return importName;
-    });
-  }
+    }
+  });
+
   return rt;
 };
 
