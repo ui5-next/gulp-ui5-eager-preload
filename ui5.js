@@ -5,19 +5,11 @@ var { existsSync, readFileSync } = require("fs");
 var findNodeModules = require('find-node-modules');
 var log = require("fancy-log");
 var colors = require("ansi-colors");
+var ui5Parser = require("./ui5_parser");
 
 var jsParser = {
   parse: source => {
-    return require("recast").parse(source, {
-      parser: {
-        parse(source) {
-          return require("@babel/parser").parse(source, {
-            plugins: ["typescript", "jsx", "classProperties"],
-            sourceType: "module"
-          });
-        }
-      }
-    });
+    return require("recast").parse(source, { parser: ui5Parser });
   }
 };
 
