@@ -404,18 +404,30 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
       await Promise.all(
         Array.from(needToBeLoad).map(async mName => {
           try {
+
             var source = "";
+
             try {
               source = await fetchSource(mName, resourceRoot);
             } catch (error) {
               // retry once
               source = await fetchSource(mName, resourceRoot);
             }
-            // use cache here
+
             modules[mName] = source;
+            var sourceHash = md5(source);
+
+            // use cache here
+            if (globalModuleCache[sourceHash]) {
+              moduleDeps[mName] = globalModuleCache[sourceHash];
+            }
+
+            // not found dependency from cache
             if (!moduleDeps[mName]) {
               moduleDeps[mName] = findAllUi5StandardModules(source, mName);
+              globalModuleCache[sourceHash] = moduleDeps[mName];
             }
+
           } catch (error) {
             modules[mName] = "";
             moduleDeps[mName] = [];
@@ -425,10 +437,7 @@ var resolveUI5Module = async(sModuleNames = [], resourceRoot) => {
     }
   }
 
-  persistCache.set(
-    "GlobalModuleCache",
-    Object.assign(globalModuleCache, modules)
-  );
+  persistCache.set("GlobalModuleCache", globalModuleCache);
 
   return modules;
 };
