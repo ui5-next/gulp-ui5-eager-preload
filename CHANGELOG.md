@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.19.0](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.18.3...v1.19.0) (2019-11-13)
+
+
+### Features
+
+* loadingSpinner ([647a0da](https://github.com/Soontao/gulp-ui5-eager-preload/commit/647a0da))
+
+
+
 ### [1.18.3](https://github.com/Soontao/gulp-ui5-eager-preload/compare/v1.18.2...v1.18.3) (2019-11-12)
 
 
