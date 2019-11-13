@@ -36,6 +36,7 @@ module.exports = function({
   theme,
   title,
   production = false,
+  withLoadingSpinner = false,
   bootScript,
   bootScriptPath,
   offline = false,
@@ -262,6 +263,7 @@ module.exports = function({
           bootScriptPath,
           preload,
           offline,
+          withLoadingSpinner,
           inlineCssLink: cssLinks,
           resourceRoots: {
             [projectNameSpace]: ".",
