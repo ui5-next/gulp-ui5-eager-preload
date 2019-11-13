@@ -74,8 +74,8 @@ ${withLoadingSpinner ? loadingSpinnerCode : ""}
   data-sap-ui-resourceroots='${JSON.stringify(resourceRoots)}'
 >
 </script>
-${sBootScript}
 ${jsSrcs}
+${sBootScript}
 ${cssLinks}
 </html>`;
 };
