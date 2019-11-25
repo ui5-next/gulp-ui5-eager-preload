@@ -17,6 +17,7 @@ var generateIndexHtmlContent = ({
   theme = "sap_belize",
   projectNameSpace = "",
   preload = false,
+  ui5ThemeRoot = {},
   title = "UI5 Application",
   inlineCssLink = [],
   inlineJsSrc = [],
@@ -72,6 +73,7 @@ ${withLoadingSpinner ? loadingSpinnerCode : ""}
   data-sap-ui-theme="${theme}"
   data-sap-ui-compatVersion="edge"
   data-sap-ui-resourceroots='${JSON.stringify(resourceRoots)}'
+  data-sap-ui-theme-roots='${JSON.stringify(ui5ThemeRoot)}'
 >
 </script>
 ${jsSrcs}

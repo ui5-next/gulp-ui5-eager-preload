@@ -24,12 +24,13 @@ var { bundleModule } = require("./thirdparty");
 
 var defaultResourceRoot = "https://openui5.hana.ondemand.com/resources/";
 
-module.exports = function({
+module.exports = function ({
   sourceDir,
   preload = false,
   outputFilePath,
   thirdpartyLibPath = ".",
   ui5ResourceRoot = defaultResourceRoot,
+  ui5ThemeRoot = {},
   projectNameSpace: projectNameSpace = "",
   additionalModules = [],
   additionalResources = [],
@@ -55,7 +56,7 @@ module.exports = function({
     );
   }
 
-  return through2.obj(async function(file, encoding, cb) {
+  return through2.obj(async function (file, encoding, cb) {
     try {
 
       var libs = [];
@@ -69,7 +70,7 @@ module.exports = function({
 
       // preload js module
       var preloadPromise = new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.?(js|jsx|ts|tsx|mjs)`, async(err, files) => {
+        glob(`${sourceDir}/**/*.?(js|jsx|ts|tsx|mjs)`, async (err, files) => {
           try {
 
             if (err) {
@@ -110,7 +111,7 @@ module.exports = function({
 
       // preload xml view
       var preloadProjectPromise = new Promise((resolve, reject) => {
-        glob(`${sourceDir}/**/*.+(view|fragment).xml`, async(err, files) => {
+        glob(`${sourceDir}/**/*.+(view|fragment).xml`, async (err, files) => {
           if (err) {
             reject(err);
           } else {
@@ -247,9 +248,6 @@ module.exports = function({
             })
           );
         });
-        cssLinks = libs.map(l => `./resources/${l}/themes/${theme}/library.css`);
-      } else {
-        cssLinks = libs.map(l => `${ui5ResourceRoot}${l}/themes/${theme}/library.css`);
       }
 
       if (!library) {
@@ -259,6 +257,7 @@ module.exports = function({
           projectNameSpace: projectNameSpace,
           theme: theme,
           title: title,
+          ui5ThemeRoot,
           bootScript,
           bootScriptPath,
           preload,
