@@ -125,23 +125,13 @@ module.exports = function(options) {
 
     var contents = "";
 
-    var template = "jQuery.sap.registerPreloadedModules(JSON_CONTENT);";
     var suffix = ".Component-preload";
 
     if (options.isLibrary) {
       contents = formatLibraryPreloadFile(preloadModules);
     } else {
-      contents = template.replace("JSON_CONTENT", () =>
-        JSON.stringify(
-          {
-            name: options.namespace + suffix,
-            version: "2.0",
-            modules: preloadModules
-          },
-          null,
-          "\t"
-        )
-      );
+      contents = `sap.ui.require.preload(${JSON.stringify(preloadModules)}, "${options.namespace + suffix}")`;
+
     }
 
     var preloadFile = firstFile.clone({ contents: false });

@@ -225,7 +225,7 @@ var findUi5ModuleName = source => {
 var findAllUi5StandardModules = (source, sourceName = "") => {
   var base = dirname(sourceName);
   var deps = [];
-  var addDependency = dependency => { if (dependency) {deps = deps.concat(dependency);} };
+  var addDependency = dependency => { if (dependency) { deps = deps.concat(dependency); } };
 
   traverseSource(source, {
     CallExpression({ node }) {
@@ -483,7 +483,7 @@ var TmpUglifyNameCache = {};
  * @param {*} cache object
  * @param {*} resources list
  */
-var generatePreloadFile = (cache = {}, resources = {}) => {
+var generatePreloadFile = (cache = {}, resources = {}, namespace = "preload") => {
   var modules = reduce(
     cache,
     (pre, moduleSource, moduleName) => {
@@ -506,7 +506,7 @@ var generatePreloadFile = (cache = {}, resources = {}) => {
     modules[resourceName] = content;
   });
 
-  return `sap.ui.require.preload(${JSON.stringify(modules)})`;
+  return `sap.ui.require.preload(${JSON.stringify(modules)}, "${namespace}.preload")`;
 };
 
 module.exports = {
