@@ -20,5 +20,8 @@
         "onwarn",
         "preload",
         "thirdparty"
-    ]
+    ],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    }
 }
