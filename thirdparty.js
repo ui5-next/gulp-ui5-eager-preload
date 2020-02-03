@@ -1,12 +1,12 @@
 var rollup = require("rollup");
-var rollupNodeResolve = require("rollup-plugin-node-resolve");
-var rollupCjs = require("rollup-plugin-commonjs");
-var rollupJson = require("rollup-plugin-json");
+var rollupNodeResolve = require("@rollup/plugin-node-resolve");
+var rollupCjs = require("@rollup/plugin-commonjs");
+var rollupJson = require("@rollup/plugin-json");
+var rollupReplace = require("@rollup/plugin-replace");
 var { uglify } = require("rollup-plugin-uglify");
 var log = require('fancy-log');
 var colors = require('ansi-colors');
 
-var rollupReplace = require("rollup-plugin-replace");
 
 var libInMemoryCache = {};
 
@@ -53,14 +53,15 @@ var resolve = mName => {
  * @param {string} mName module name
  */
 var bundleModule = async(mName, minify = false) => {
+  const mCacheName = `${mName}${minify ? "minify" : ""}`;
   // if not found cache
-  if (!libInMemoryCache[mName]) {
+  if (!libInMemoryCache[mCacheName]) {
     const absPath = resolve(mName);
     const bundle = await rollup.rollup(rollupTmpConfig(absPath, mName, minify));
     const generated = await bundle.generate({ format: "umd", name: mName });
-    libInMemoryCache[mName] = formatUI5Module(generated.output[0].code, mName);
+    libInMemoryCache[mCacheName] = formatUI5Module(generated.output[0].code, mName);
   }
-  return libInMemoryCache[mName];
+  return libInMemoryCache[mCacheName];
 };
 
 module.exports = { bundleModule };
