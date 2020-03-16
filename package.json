@@ -11,14 +11,17 @@
     "test": "jest",
     "release": "standard-version --commit-all --no-verify && git push --follow-tags origin master"
   },
+  "jest": {
+    "testTimeout": 10000
+  },
   "devDependencies": {
     "@commitlint/cli": "^8",
     "@commitlint/config-conventional": "^8",
-    "@types/jest": "^24.0.18",
-    "eslint": "^5.16.0",
+    "@types/jest": "^25",
+    "eslint": "^6",
     "husky": "^2.3.0",
-    "jest": "^24.9.0",
-    "standard-version": "^6.0.1"
+    "jest": "^25",
+    "standard-version": "^7"
   },
   "dependencies": {
     "@babel/parser": "^7.6.3",
@@ -32,17 +35,17 @@
     "fancy-log": "^1.3.3",
     "find-node-modules": "^2.0.0",
     "glob": "^7.1.3",
-    "graphlib": "^2.1.7",
+    "graphlib": "^2.1.8",
     "lodash": "^4.17.15",
-    "node-fetch": "^2.3.0",
+    "node-fetch": "^2",
     "plugin-error": "^1.0.1",
-    "recast": "^0.18.3",
+    "recast": "^0.18.7",
     "rollup": "^1",
     "rollup-plugin-uglify": "^6",
     "through2": "^2.0.3",
     "uglify-js": "^3",
     "vinyl": "^2.2.0",
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.23"
   },
   "license": "MIT",
   "husky": {
