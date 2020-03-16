@@ -1,6 +1,7 @@
 # gulp ui5 eager preload plugin
 
 [![npm version](https://badge.fury.io/js/gulp-ui5-eager-preload.svg)](https://www.npmjs.com/package/gulp-ui5-eager-preload)
+[![CircleCI](https://circleci.com/gh/ui5-next/gulp-ui5-eager-preload.svg?style=shield)](https://circleci.com/gh/ui5-next/gulp-ui5-eager-preload)
 [![Known Vulnerabilities](https://snyk.io/test/github/ui5-next/gulp-ui5-eager-preload/badge.svg)](https://snyk.io/test/github/ui5-next/gulp-ui5-eager-preload)
 
 Please use this module by [The ultimate generator for UI5](https://github.com/ui5-next/ui5g)
