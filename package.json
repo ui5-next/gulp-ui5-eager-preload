@@ -40,7 +40,7 @@
     "node-fetch": "^2",
     "plugin-error": "^1.0.1",
     "recast": "^0.18.7",
-    "rollup": "^1.32.0",
+    "rollup": "^2.0.0",
     "rollup-plugin-uglify": "^6",
     "through2": "^2.0.3",
     "uglify-js": "^3.8.0",
