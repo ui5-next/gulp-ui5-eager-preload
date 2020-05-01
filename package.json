@@ -9,7 +9,9 @@
   "scripts": {
     "clean": "rm -rf lib",
     "test": "jest",
-    "release": "standard-version --commit-all --no-verify && git push --follow-tags origin master"
+    "release": "standard-version --commit-all --no-verify && git push --follow-tags origin master",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "jest": {
     "testTimeout": 10000
@@ -45,7 +47,8 @@
     "through2": "^2.0.3",
     "uglify-js": "^3.8.0",
     "vinyl": "^2.2.0",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.4.23",
+    "snyk": "^1.316.1"
   },
   "license": "MIT",
   "husky": {
@@ -56,5 +59,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Soontao/gulp-ui5-eager-preload"
-  }
+  },
+  "snyk": true
 }
