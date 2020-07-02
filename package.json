@@ -15,7 +15,7 @@
     "testTimeout": 10000
   },
   "devDependencies": {
-    "@commitlint/cli": "^8",
+    "@commitlint/cli": "^9",
     "@commitlint/config-conventional": "^8",
     "@types/jest": "^25",
     "eslint": "^6",
