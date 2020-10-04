@@ -1,5 +1,5 @@
 var rollup = require("rollup");
-var rollupNodeResolve = require("@rollup/plugin-node-resolve");
+var { nodeResolve } = require("@rollup/plugin-node-resolve");
 var rollupCjs = require("@rollup/plugin-commonjs");
 var rollupJson = require("@rollup/plugin-json");
 var rollupReplace = require("@rollup/plugin-replace");
@@ -18,7 +18,7 @@ var formatUI5Module = (umdCode, mName) => `sap.ui.define("${mName}", function(){
 
 var rollupTmpConfig = (mAsbPath, mName, minify = false) => {
   const plugins = [
-    rollupNodeResolve({ preferBuiltins: true }),
+    nodeResolve({ preferBuiltins: true }),
     rollupCjs(),
     rollupJson(),
     rollupReplace({
