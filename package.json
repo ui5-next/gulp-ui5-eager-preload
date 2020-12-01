@@ -28,7 +28,7 @@
     "@babel/traverse": "^7.11.5",
     "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-node-resolve": "^11.0.0",
     "@rollup/plugin-replace": "^2.3.3",
     "ansi-colors": "^4.1.1",
     "deepdash": "^5.3.0",
